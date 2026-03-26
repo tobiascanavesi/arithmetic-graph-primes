@@ -1,0 +1,10 @@
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+__pycache__/
+*.pyc
