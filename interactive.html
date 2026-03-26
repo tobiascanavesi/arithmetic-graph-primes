@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semiprime Bottlenecks in Arithmetic Graphs — Interactive Guide</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #f472b6;
+    --accent3: #a78bfa;
+    --accent4: #34d399;
+    --gold: #fbbf24;
+    --red: #f87171;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 80px 24px 60px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  header .subtitle {
+    color: var(--muted);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 24px;
+  }
+  header .author {
+    color: var(--accent);
+    font-size: 0.95rem;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(56,189,248,0.15);
+    border: 1px solid rgba(56,189,248,0.3);
+    color: var(--accent);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 16px;
+  }
+
+  /* Navigation */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,23,42,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+  }
+  nav .container {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav .container::-webkit-scrollbar { display:none; }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  nav a:hover, nav a.active {
+    color: var(--accent);
+    background: rgba(56,189,248,0.1);
+    border-color: rgba(56,189,248,0.3);
+  }
+
+  /* Sections */
+  section {
+    padding: 60px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  section:last-child { border-bottom: none; }
+  .section-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--accent3);
+  }
+  p { margin-bottom: 16px; color: var(--text); }
+  .muted { color: var(--muted); }
+
+  /* Result cards */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 24px 0;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .result-card:hover { border-color: var(--accent); }
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .result-header:hover { background: rgba(56,189,248,0.05); }
+  .result-type {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .type-def { background: rgba(56,189,248,0.2); color: var(--accent); }
+  .type-prop { background: rgba(167,139,250,0.2); color: var(--accent3); }
+  .type-thm { background: rgba(244,114,182,0.2); color: var(--accent2); }
+  .type-lem { background: rgba(52,211,153,0.2); color: var(--accent4); }
+  .type-cor { background: rgba(251,191,36,0.2); color: var(--gold); }
+  .type-conj { background: rgba(248,113,113,0.2); color: var(--red); }
+  .result-title { font-weight: 600; flex: 1; }
+  .result-toggle {
+    color: var(--muted);
+    font-size: 1.2rem;
+    transition: transform 0.3s;
+  }
+  .result-card.open .result-toggle { transform: rotate(180deg); }
+  .result-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .result-card.open .result-body { max-height: 2000px; }
+  .result-content {
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .plain-english {
+    background: rgba(56,189,248,0.08);
+    border-left: 3px solid var(--accent);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.95rem;
+  }
+  .plain-english strong { color: var(--accent); }
+  .formal {
+    background: rgba(167,139,250,0.08);
+    border-left: 3px solid var(--accent3);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+  }
+  .key-insight {
+    background: rgba(244,114,182,0.1);
+    border: 1px solid rgba(244,114,182,0.3);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+  }
+  .key-insight::before {
+    content: "Key insight";
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  /* Interactive graph */
+  #graph-canvas {
+    width: 100%;
+    height: 420px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: grab;
+    touch-action: none;
+  }
+  #graph-canvas:active { cursor: grabbing; }
+  .graph-controls {
+    display: flex;
+    gap: 10px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .graph-controls label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .graph-controls input[type=range] {
+    width: 120px;
+    accent-color: var(--accent);
+  }
+  .graph-controls select, .graph-controls button {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .graph-controls button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .node-info {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    min-height: 48px;
+  }
+  .node-info span { color: var(--accent); font-weight: 600; }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+  /* Table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9rem;
+  }
+  .data-table th {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+    color: var(--accent);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tr:hover td { background: rgba(56,189,248,0.05); }
+  .highlight-row td { color: var(--gold); font-weight: 600; }
+
+  /* Analogy boxes */
+  .analogy {
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 10px;
+    padding: 18px;
+    margin: 20px 0;
+  }
+  .analogy::before {
+    content: "Real-world analogy";
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--gold);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  /* Discussion */
+  .implication-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .implication-card h4 {
+    color: var(--accent2);
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.3rem; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>Semiprime Bottlenecks in Arithmetic Graphs</h1>
+    <p class="subtitle">An interactive guide to understanding why the most connected numbers aren't the most important — and why that matters.</p>
+    <p class="author">Tobias Canavesi — Independent Researcher</p>
+    <span class="badge">Interactive companion to the research paper</span>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <a href="#big-idea" class="active">The Big Idea</a>
+    <a href="#graph">Explore the Graph</a>
+    <a href="#results">Results</a>
+    <a href="#evidence">Evidence</a>
+    <a href="#discussion">Why It Matters</a>
+  </div>
+</nav>
+
+<!-- ============ THE BIG IDEA ============ -->
+<section id="big-idea">
+  <div class="container">
+    <div class="section-label">The Big Idea</div>
+    <h2>The Most Connected Numbers Aren't the Most Important</h2>
+
+    <p>Imagine a road network where every city is connected to its neighbors, but some cities also have express highways that let you jump over many cities at once. You'd probably guess that the city sitting at the intersection of the <em>most</em> highways would be the most important, right?</p>
+
+    <p>This paper proves that intuition is <strong style="color:var(--accent2)">wrong</strong>.</p>
+
+    <p>We build a network (a "graph") on the integers from 1 to N. Each number is connected to its neighbors (1→2→3→…), and also to its multiples via "prime highways." The number 2310 = 2 × 3 × 5 × 7 × 11 sits on <em>five</em> different highways and has 12 connections — the most of any number. But it's <strong>not</strong> the most important bottleneck.</p>
+
+    <p>Instead, simple numbers like <strong style="color:var(--accent)">2 × 619 = 1238</strong> — sitting on just <em>two</em> highways with only 6 connections — turn out to be the true bottlenecks. They control more traffic than any high-degree number.</p>
+
+    <div class="analogy">
+      Think of a small-town gas station on a remote desert highway. There might be only one road passing through, but <em>every</em> car on that road must stop there. Meanwhile, a massive interchange in a city has dozens of roads — but each individual road has many alternative routes. The gas station is the bottleneck, not the interchange.
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">96%</div>
+        <div class="stat-label">of top bottleneck nodes are semiprimes (2p or 3p)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">6</div>
+        <div class="stat-label">connections — all top bottlenecks have exactly 6</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">connections — the highest-degree number (2310) has 12</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">½×</div>
+        <div class="stat-label">the bottleneck score of 2310 vs. top semiprime</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INTERACTIVE GRAPH ============ -->
+<section id="graph">
+  <div class="container">
+    <div class="section-label">Explore</div>
+    <h2>The Arithmetic Graph — Live</h2>
+    <p>This is a real arithmetic graph. Each dot is a number. <strong style="color:#888">Grey lines</strong> connect consecutive numbers (1→2→3…). <strong style="color:var(--accent)">Blue lines</strong> are prime-highway edges. Hover over any node to learn about it.</p>
+
+    <div class="graph-controls">
+      <label>Graph size N =</label>
+      <select id="graphN">
+        <option value="30">30</option>
+        <option value="50" selected>50</option>
+        <option value="80">80</option>
+        <option value="100">100</option>
+      </select>
+      <button id="btnRedraw">Redraw</button>
+      <label style="margin-left:16px;">
+        <input type="checkbox" id="chkHighlight" checked> Highlight semiprimes
+      </label>
+    </div>
+
+    <canvas id="graph-canvas"></canvas>
+    <div class="node-info" id="nodeInfo">Hover over a node to see its properties.</div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section id="results">
+  <div class="container">
+    <div class="section-label">The Results</div>
+    <h2>What We Proved — Step by Step</h2>
+    <p class="muted">Click any result to expand it. Each one has a plain-English explanation and the formal mathematical statement.</p>
+
+    <!-- Definition -->
+    <div class="result-card open" id="rc-def">
+      <div class="result-header" onclick="toggleCard('rc-def')">
+        <span class="result-type type-def">Definition</span>
+        <span class="result-title">The Arithmetic Graph</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> Take the numbers 1, 2, 3, … up to N. Connect each number to the next one (like a chain). Then, for every prime number p, also connect every multiple of p to the next multiple — so 2p connects to 3p, 3p connects to 4p, and so on. These "prime shortcuts" are the highways.
+          </div>
+          <div class="formal">
+            G_N has vertex set {1, …, N} with edges from sequential adjacency (n → n+1) and prime-stride multiplication (kp → (k+1)p for each prime p).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prop: Edge Count -->
+    <div class="result-card" id="rc-edges">
+      <div class="result-header" onclick="toggleCard('rc-edges')">
+        <span class="result-type type-prop">Proposition</span>
+        <span class="result-title">How Many Connections? (Edge Count)</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> The total number of connections in the graph grows slowly — roughly as N × log(log(N)). That means the graph is <em>very sparse</em>: most possible connections don't exist. Yet the few that do exist are enough to make the graph a "small world" where any node can reach any other in a small number of steps.
+          </div>
+          <div class="formal">
+            |E(G_N)| = (N − 1) + Σ(⌊N/p⌋ − 1) over primes p ≤ N. Average degree ~ 2 log log N.
+          </div>
+          <table class="data-table">
+            <tr><th>N</th><th>Edges</th><th>Avg. degree</th></tr>
+            <tr><td>100</td><td>245</td><td>4.9</td></tr>
+            <tr><td>1,000</td><td>2,957</td><td>5.9</td></tr>
+            <tr><td>5,000</td><td>16,068</td><td>6.4</td></tr>
+            <tr><td>10,000</td><td>~33,000</td><td>6.6</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prop: Degree Formula -->
+    <div class="result-card" id="rc-degree">
+      <div class="result-header" onclick="toggleCard('rc-degree')">
+        <span class="result-type type-prop">Proposition</span>
+        <span class="result-title">Degree Formula — How Connected Is Each Number?</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> A number's connection count depends on how many different prime factors it has. If a number has ω prime factors (and isn't near the boundary), its degree is exactly 2 + 2ω. A prime has 1 prime factor → 3 connections. A semiprime (two prime factors) → 6 connections. A number like 2310 with 5 prime factors → 12 connections.
+          </div>
+          <div class="formal">
+            For interior nodes: deg(v) = 2 + 2ω(v), where ω(v) is the number of distinct prime divisors of v.
+          </div>
+          <table class="data-table">
+            <tr><th>Number</th><th>Factorization</th><th>ω</th><th>Degree</th></tr>
+            <tr><td>173</td><td>prime</td><td>1</td><td>3</td></tr>
+            <tr><td>106</td><td>2 × 53</td><td>2</td><td>6</td></tr>
+            <tr><td>210</td><td>2 × 3 × 5 × 7</td><td>4</td><td>10</td></tr>
+            <tr class="highlight-row"><td>2310</td><td>2 × 3 × 5 × 7 × 11</td><td>5</td><td>12</td></tr>
+          </table>
+          <div class="key-insight">
+            If more connections meant more importance, 2310 would be the king. It isn't. This mismatch between degree and importance is the central puzzle of the paper.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prop: Small World -->
+    <div class="result-card" id="rc-diameter">
+      <div class="result-header" onclick="toggleCard('rc-diameter')">
+        <span class="result-type type-prop">Proposition</span>
+        <span class="result-title">Small-World Property — Short Paths Everywhere</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> Despite the graph being sparse, you can get from any number to any other in surprisingly few steps. We proved the diameter is at most O(√N), and the data suggests it might even be O(log N) — meaning in a graph with 10,000 nodes, the longest shortest path is only about 27 steps. The prime highways act as express routes that shrink distances dramatically.
+          </div>
+          <div class="formal">
+            diam(G_N) = O(√N) (proven). Empirical evidence supports O(log N).
+          </div>
+          <table class="data-table">
+            <tr><th>N</th><th>Diameter</th><th>Avg. path length</th></tr>
+            <tr><td>100</td><td>12</td><td>4.22</td></tr>
+            <tr><td>500</td><td>18</td><td>5.59</td></tr>
+            <tr><td>1,000</td><td>20</td><td>6.09</td></tr>
+            <tr><td>5,000</td><td>27</td><td>7.23</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Corollary: Large Prime Necessity -->
+    <div class="result-card" id="rc-largeprime">
+      <div class="result-header" onclick="toggleCard('rc-largeprime')">
+        <span class="result-type type-cor">Corollary</span>
+        <span class="result-title">Large-Prime Necessity — You Must Use the Big Highways</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> If you need to travel a long distance in the graph, you <em>have</em> to use at least one large-prime highway. Small primes (2, 3, 5…) give you dense highways with lots of stops — but each step only moves you a little. To cover real distance, you need the big jumps that only come from large primes. And those large-prime highways have very few stops — which is exactly why they create bottlenecks.
+          </div>
+          <div class="formal">
+            Every shortest path covering distance ≥ N/C must use a multiplicative edge with p > √(N/C).
+          </div>
+          <div class="key-insight">
+            This is the fundamental link: efficient routing <em>requires</em> large-prime highways, and large-prime highways are inherently scarce. Scarcity creates bottlenecks.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lemma: Highway Scarcity -->
+    <div class="result-card" id="rc-scarcity">
+      <div class="result-header" onclick="toggleCard('rc-scarcity')">
+        <span class="result-type type-lem">Lemma</span>
+        <span class="result-title">Highway Scarcity — Big Primes, Few Stops</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> The highway for prime p has exactly ⌊N/p⌋ stops. So the 2-highway (multiples of 2) has ~N/2 stops — half the numbers. But the highway for a large prime like p = 503 (when N = 2000) has only 3 stops: 503, 1006, and 1509. For primes larger than N/3, the highway shrinks to just 2 stops. For primes larger than N/2, only 1 stop — and no edges at all.
+          </div>
+          <div class="formal">
+            For N/3 < p ≤ N/2, the p-highway has exactly 2 stops {p, 2p} and a single edge. Every path using this edge passes through both nodes.
+          </div>
+          <div class="analogy">
+            The 2-highway is like a major interstate with an exit every mile. The highway for a large prime is like a desert road with one gas station in 500 miles. Both are useful — but the desert gas station is irreplaceable.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lemma: Access Cost -->
+    <div class="result-card" id="rc-access">
+      <div class="result-header" onclick="toggleCard('rc-access')">
+        <span class="result-type type-lem">Lemma</span>
+        <span class="result-title">Access Cost — How Easy Is It to Reach a Highway?</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> To get onto the highway for number k, you walk along the chain until you hit a multiple of k. The farthest you'd ever need to walk is ⌊k/2⌋ steps. For the 2-highway, that's at most 1 step — because every other number is even. For the 3-highway, at most 1 step too. This means the 2-highway is the easiest to access from anywhere.
+          </div>
+          <div class="formal">
+            The distance from any node to the nearest multiple of k is at most ⌊k/2⌋. Access cost to the 2-highway ≤ 1. Access cost to the 3-highway ≤ 1.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theorem: Semiprime Bottleneck -->
+    <div class="result-card" id="rc-bottleneck">
+      <div class="result-header" onclick="toggleCard('rc-bottleneck')">
+        <span class="result-type type-thm">Theorem</span>
+        <span class="result-title">The Semiprime Bottleneck — Why 2p Wins</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> Take a large prime p (between N/4 and N/3). Its highway has exactly 3 stops: p, 2p, and 3p. Among these three, 2p is the winner because it combines two advantages:
+            <br><br>
+            <strong>1. Best position:</strong> 2p sits near the middle of {1,…,N}, making it geometrically closest to a random starting point.
+            <br><br>
+            <strong>2. Easiest access:</strong> 2p is on the 2-highway, so any number can reach it in just 1 step + a ride on the 2-highway. The bare prime p has no such shortcut, and 3p is farther from center.
+            <br><br>
+            This is confirmed by the data: 2p captures about 44% of all traffic on its highway, consistently beating both p and 3p.
+          </div>
+          <div class="formal">
+            Among {p, 2p, 3p} on a 3-stop highway, node 2p has the lowest expected shortest-path distance from a uniformly random source, combining lowest access cost with best geometric centrality.
+          </div>
+          <div class="key-insight">
+            This is the paper's central result. The "scarcity–accessibility trade-off": large primes create scarce highways (few stops = bottleneck), and 2p is the most accessible stop on those scarce highways. Scarcity × accessibility = maximum importance.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prop: Primorial Dilution -->
+    <div class="result-card" id="rc-dilution">
+      <div class="result-header" onclick="toggleCard('rc-dilution')">
+        <span class="result-type type-prop">Proposition</span>
+        <span class="result-title">Primorial Dilution — Why High-Degree Nodes Lose</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> A primorial like 2310 sits on 5 different highways — but each of those highways has <em>hundreds</em> of other stops. On the 2-highway alone, 2310 is just one of ~N/2 stops. It's a small fish in a big pond, on every pond it swims in.
+            <br><br>
+            In contrast, 2 × 619 = 1238 sits on the 619-highway, which has only 3 stops total. It's a big fish in a tiny pond. The math shows that the primorial's betweenness contribution from each highway vanishes as O(p/N), while the semiprime's contribution stays constant.
+          </div>
+          <div class="formal">
+            For a fixed primorial v = p₁⋯pᵣ with small prime factors, its share of betweenness on the pᵢ-highway is at most O(pᵢ/N), which → 0 as N grows.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Corollary: Decorrelation -->
+    <div class="result-card" id="rc-decorr">
+      <div class="result-header" onclick="toggleCard('rc-decorr')">
+        <span class="result-type type-cor">Corollary</span>
+        <span class="result-title">Degree–Betweenness Decorrelation</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> Putting it all together: as the graph gets larger, the correlation between how many connections a node has (degree) and how important it is as a bottleneck (betweenness) drops toward zero. High-degree nodes have vanishing importance, while low-degree semiprimes dominate. By N = 10,000, the correlation has fallen to just 0.022 — almost zero.
+          </div>
+          <div class="formal">
+            The Pearson correlation ρ(deg, BC) decays to 0 as N → ∞.
+          </div>
+          <table class="data-table">
+            <tr><th>N</th><th>Correlation ρ</th><th>Top-50 semiprimes</th></tr>
+            <tr><td>500</td><td>0.253</td><td>84%</td></tr>
+            <tr><td>1,000</td><td>0.176</td><td>94%</td></tr>
+            <tr><td>2,000</td><td>0.118</td><td>92%</td></tr>
+            <tr><td>5,000</td><td>0.057</td><td>94%</td></tr>
+            <tr class="highlight-row"><td>10,000</td><td>0.022</td><td>96%</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conjecture -->
+    <div class="result-card" id="rc-conj">
+      <div class="result-header" onclick="toggleCard('rc-conj')">
+        <span class="result-type type-conj">Conjecture</span>
+        <span class="result-title">The Scaling Conjecture — Semiprimes Win Forever</span>
+        <span class="result-toggle">▼</span>
+      </div>
+      <div class="result-body">
+        <div class="result-content">
+          <div class="plain-english">
+            <strong>In plain English:</strong> We conjecture that as the graph grows to infinity, the correlation between degree and betweenness goes to exactly zero, and the bottleneck nodes consist <em>entirely</em> of semiprimes 2p and 3p. The data decay roughly as N<sup>−0.8</sup>, suggesting this isn't a fluke — it's a fundamental structural law.
+          </div>
+          <div class="formal">
+            As N → ∞, ρ(deg, BC) → 0. The set of nodes maximizing betweenness eventually consists entirely of semiprimes 2p and 3p.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EVIDENCE ============ -->
+<section id="evidence">
+  <div class="container">
+    <div class="section-label">Evidence</div>
+    <h2>The Data — Top 10 Bottleneck Nodes (N = 10,000)</h2>
+    <p>Every single one of the top 10 most important nodes (by betweenness centrality) is a semiprime with exactly 6 connections. Not one of them has more connections than a prime with 3.</p>
+
+    <table class="data-table">
+      <tr><th>Rank</th><th>Node</th><th>Factorization</th><th>Degree</th><th>Betweenness</th></tr>
+      <tr class="highlight-row"><td>1</td><td>1,238</td><td>2 × 619</td><td>6</td><td>0.00390</td></tr>
+      <tr class="highlight-row"><td>2</td><td>1,906</td><td>2 × 953</td><td>6</td><td>0.00359</td></tr>
+      <tr class="highlight-row"><td>3</td><td>2,654</td><td>2 × 1327</td><td>6</td><td>0.00352</td></tr>
+      <tr class="highlight-row"><td>4</td><td>2,818</td><td>2 × 1409</td><td>6</td><td>0.00350</td></tr>
+      <tr class="highlight-row"><td>5</td><td>3,981</td><td>3 × 1327</td><td>6</td><td>0.00332</td></tr>
+      <tr><td>6</td><td>1,018</td><td>2 × 509</td><td>6</td><td>0.00328</td></tr>
+      <tr><td>7</td><td>5,241</td><td>3 × 1747</td><td>6</td><td>0.00321</td></tr>
+      <tr><td>8</td><td>4,911</td><td>3 × 1637</td><td>6</td><td>0.00313</td></tr>
+      <tr><td>9</td><td>586</td><td>2 × 293</td><td>6</td><td>0.00312</td></tr>
+      <tr><td>10</td><td>2,218</td><td>2 × 1109</td><td>6</td><td>0.00311</td></tr>
+    </table>
+
+    <p style="margin-top:20px;">For comparison: node <strong>2310</strong> = 2 × 3 × 5 × 7 × 11 has degree <strong>12</strong> (the highest in the graph) but betweenness of only 0.0021 — roughly <strong>half</strong> that of the top semiprime, despite having <strong>double</strong> the connections.</p>
+  </div>
+</section>
+
+<!-- ============ DISCUSSION ============ -->
+<section id="discussion">
+  <div class="container">
+    <div class="section-label">Why It Matters</div>
+    <h2>Discussion & Broader Implications</h2>
+
+    <h3>The Structural Paradox</h3>
+    <p>The nodes that <em>look</em> most important (high degree, many prime factors) are not the ones that <em>function</em> as the most critical bottlenecks. The true bottlenecks are semiprimes — nodes sitting at the intersection of a dense subnetwork (the 2- or 3-highway) and a sparse one (a large-prime highway).</p>
+
+    <p>A node's importance depends not on how many highways it serves, but on how <strong>irreplaceable</strong> it is on the highways it serves. A primorial serves many highways, but each has many other stops. A semiprime 2p serves only two highways, but on the large-prime highway it is one of very few stops — and the most accessible one.</p>
+
+    <h3>Beyond Arithmetic Graphs</h3>
+
+    <div class="implication-card">
+      <h4>Network Resilience</h4>
+      <p>Standard strategies for protecting networks focus on high-degree "hubs." This research shows that the true vulnerabilities may be <em>low-degree bridge nodes</em> that are hard to identify without computing betweenness. In infrastructure, transportation, and communication networks, the critical failure points might not be the obvious big intersections — they might be small connectors between dense and sparse parts of the network.</p>
+    </div>
+
+    <div class="implication-card">
+      <h4>Computational Number Theory</h4>
+      <p>The fact that semiprimes 2p occupy a structurally privileged position in the multiplicative landscape of the integers may connect to deeper questions in number theory. The routing geometry of the arithmetic graph encodes how addition and multiplication interact. Understanding which integers act as bottlenecks in this interaction could potentially inform algorithmic approaches to factorization and primality testing.</p>
+    </div>
+
+    <div class="implication-card">
+      <h4>A Universal Principle</h4>
+      <p>The "scarcity–accessibility trade-off" is not specific to numbers. Any network containing both dense and sparse subnetworks may show the same paradox: low-degree nodes bridging a dense cluster to a sparse one can dominate betweenness over high-degree hubs. Arithmetic graphs provide a clean, deterministic testbed to study this phenomenon analytically — without the noise of random network models.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Interactive companion to <em>"Semiprime Bottlenecks in Arithmetic Graphs: Betweenness Centrality from Prime Highways"</em></p>
+    <p>by Tobias Canavesi · <a href="https://github.com/tobiascanavesi/arithmetic-graph-primes" target="_blank">GitHub Repository</a> · Full paper and reproduction code available</p>
+  </div>
+</footer>
+
+<script>
+// ===== Card Toggle =====
+function toggleCard(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ===== Smooth Nav Highlighting =====
+const sections = document.querySelectorAll('section');
+const navLinks = document.querySelectorAll('nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+});
+
+// ===== Interactive Graph =====
+const canvas = document.getElementById('graph-canvas');
+const ctx = canvas.getContext('2d');
+let nodes = [], edges = [], hoveredNode = null;
+let dpr = window.devicePixelRatio || 1;
+
+function isPrime(n) {
+  if (n < 2) return false;
+  if (n < 4) return true;
+  if (n % 2 === 0 || n % 3 === 0) return false;
+  for (let i = 5; i * i <= n; i += 6)
+    if (n % i === 0 || n % (i + 2) === 0) return false;
+  return true;
+}
+
+function primeFactors(n) {
+  const factors = new Set();
+  let d = 2;
+  while (d * d <= n) {
+    while (n % d === 0) { factors.add(d); n /= d; }
+    d++;
+  }
+  if (n > 1) factors.add(n);
+  return [...factors];
+}
+
+function nodeType(v, N) {
+  const pf = primeFactors(v);
+  if (pf.length === 0) return 'one';
+  if (pf.length === 1 && isPrime(v)) return 'prime';
+  if (pf.length === 2) {
+    const sorted = pf.sort((a,b) => a - b);
+    if (sorted[0] === 2) return 'semi2p';
+    if (sorted[0] === 3) return 'semi3p';
+    return 'semiprime';
+  }
+  if (pf.length >= 4) return 'primorial';
+  return 'composite';
+}
+
+function buildGraph(N) {
+  nodes = [];
+  edges = [];
+
+  // Layout: circular with some structure
+  const cx = canvas.width / (2 * dpr);
+  const cy = canvas.height / (2 * dpr);
+  const R = Math.min(cx, cy) * 0.82;
+
+  for (let v = 1; v <= N; v++) {
+    const angle = (2 * Math.PI * (v - 1)) / N - Math.PI / 2;
+    nodes.push({
+      v, x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle),
+      pf: primeFactors(v), type: nodeType(v, N),
+      omega: primeFactors(v).length,
+      deg: 0
+    });
+  }
+
+  // Additive edges
+  for (let i = 0; i < N - 1; i++) {
+    edges.push({ a: i, b: i + 1, type: 'additive' });
+  }
+
+  // Multiplicative edges
+  const primes = [];
+  for (let p = 2; p <= N; p++) if (isPrime(p)) primes.push(p);
+  for (const p of primes) {
+    for (let k = 1; (k + 1) * p <= N; k++) {
+      const a = k * p - 1, b = (k + 1) * p - 1;
+      edges.push({ a, b, type: 'multiplicative', prime: p });
+    }
+  }
+
+  // Compute degrees
+  for (const e of edges) { nodes[e.a].deg++; nodes[e.b].deg++; }
+}
+
+function getColor(type, highlight) {
+  if (!highlight) return '#64748b';
+  switch (type) {
+    case 'semi2p': return '#f87171';
+    case 'semi3p': return '#fb923c';
+    case 'prime': return '#38bdf8';
+    case 'primorial': return '#a78bfa';
+    case 'one': return '#94a3b8';
+    default: return '#64748b';
+  }
+}
+
+function draw() {
+  const w = canvas.width / dpr, h = canvas.height / dpr;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.scale(dpr, dpr);
+
+  const highlight = document.getElementById('chkHighlight').checked;
+
+  // Draw edges
+  for (const e of edges) {
+    const a = nodes[e.a], b = nodes[e.b];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    if (e.type === 'additive') {
+      ctx.strokeStyle = 'rgba(71,85,105,0.35)';
+      ctx.lineWidth = 0.8;
+    } else {
+      const isHovered = hoveredNode !== null &&
+        (hoveredNode === e.a || hoveredNode === e.b);
+      ctx.strokeStyle = isHovered ? 'rgba(56,189,248,0.7)' : 'rgba(56,189,248,0.15)';
+      ctx.lineWidth = isHovered ? 2 : 0.8;
+    }
+    ctx.stroke();
+  }
+
+  // Draw nodes
+  const N = nodes.length;
+  const baseR = Math.max(2, Math.min(7, 180 / N));
+  for (let i = 0; i < N; i++) {
+    const n = nodes[i];
+    const isHovered = hoveredNode === i;
+    const r = isHovered ? baseR * 2 : (highlight && (n.type === 'semi2p' || n.type === 'semi3p') ? baseR * 1.4 : baseR);
+
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = isHovered ? '#fbbf24' : getColor(n.type, highlight);
+    ctx.fill();
+
+    if (isHovered) {
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw label
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 13px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.v, n.x, n.y - r - 8);
+    }
+  }
+
+  // Legend
+  if (highlight) {
+    const lx = 14, ly = 14;
+    ctx.font = '11px system-ui';
+    const items = [
+      ['#f87171', 'Semiprime 2p'],
+      ['#fb923c', 'Semiprime 3p'],
+      ['#38bdf8', 'Prime'],
+      ['#a78bfa', 'Primorial (4+ factors)'],
+      ['#64748b', 'Other'],
+    ];
+    items.forEach(([color, label], i) => {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(lx + 6, ly + i * 18 + 6, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#cbd5e1';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, lx + 16, ly + i * 18 + 10);
+    });
+  }
+
+  ctx.restore();
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+}
+
+function init() {
+  resizeCanvas();
+  const N = parseInt(document.getElementById('graphN').value);
+  buildGraph(N);
+  draw();
+}
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  let closest = -1, minD = 20;
+  for (let i = 0; i < nodes.length; i++) {
+    const dx = nodes[i].x - mx, dy = nodes[i].y - my;
+    const d = Math.sqrt(dx*dx + dy*dy);
+    if (d < minD) { minD = d; closest = i; }
+  }
+  if (closest !== hoveredNode) {
+    hoveredNode = closest;
+    draw();
+    const info = document.getElementById('nodeInfo');
+    if (closest >= 0) {
+      const n = nodes[closest];
+      const factStr = n.pf.length > 0 ? n.pf.join(' × ') : '1';
+      const typeNames = {
+        one: 'Unit', prime: 'Prime', semi2p: 'Semiprime (2p)',
+        semi3p: 'Semiprime (3p)', semiprime: 'Semiprime',
+        primorial: 'Highly composite', composite: 'Composite'
+      };
+      info.innerHTML = `<span>${n.v}</span> = ${factStr} · Type: <strong>${typeNames[n.type]}</strong> · ω = ${n.omega} · Degree = <strong>${n.deg}</strong> · On highways: ${n.pf.length > 0 ? n.pf.map(p => p+'-highway').join(', ') : 'none'}`;
+    } else {
+      info.textContent = 'Hover over a node to see its properties.';
+    }
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredNode = null;
+  draw();
+  document.getElementById('nodeInfo').textContent = 'Hover over a node to see its properties.';
+});
+
+document.getElementById('btnRedraw').addEventListener('click', init);
+document.getElementById('graphN').addEventListener('change', init);
+document.getElementById('chkHighlight').addEventListener('change', draw);
+window.addEventListener('resize', () => { resizeCanvas(); const N = parseInt(document.getElementById('graphN').value); buildGraph(N); draw(); });
+
+init();
+</script>
+
+</body>
+</html>

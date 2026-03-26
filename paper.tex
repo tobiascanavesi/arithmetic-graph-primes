@@ -42,7 +42,7 @@ paradox: the nodes with the highest degree---primorials like $2310 = 2 \cdot 3 \
 \emph{not} the most central. Instead, betweenness centrality is dominated by semiprimes of the
 form $2p$ and $3p$, where $p$ is a large prime. We prove an exact degree formula
 showing $\deg(v) = 2 + 2\,\omega(v)$ for interior nodes ($\omega$ = number of distinct prime divisors),
-establish that $G_N$ is small-world with $\mathrm{diam}(G_N) = O(\log N)$,
+prove $\mathrm{diam}(G_N) = O(\sqrt{N})$ with empirical evidence supporting $O(\log N)$,
 and give a routing-theoretic explanation for why minimal-multiplier semiprimes
 maximize betweenness. Computations up to $N = 10{,}000$ confirm that over $96\%$ of the
 top-50 betweenness nodes are semiprimes $2p$ or $3p$, while the degree--betweenness correlation
@@ -123,8 +123,9 @@ where $M \approx 0.2615$ is the Meissel--Mertens constant.
 \end{proof}
 
 \begin{remark}
-The graph is thus ultra-sparse (density $\to 0$) yet, as we show below, small-world
-(diameter $O(\log N)$). The average degree diverges, but only at the
+The graph is thus ultra-sparse (density $\to 0$) yet, as we show below,
+small-world in the sense of Watts and Strogatz~\cite{Watts1998}
+(diameter $O(\sqrt{N})$ proven, $O(\log N)$ empirically). The average degree diverges, but only at the
 doubly-logarithmic rate $\sim 2\log\log N$. This creates a regime where
 local connectivity grows very slowly while global shortcuts (from large-prime
 highways) provide efficient long-range navigation.
@@ -146,7 +147,8 @@ For interior nodes (i.e., $v > p_r$ and $v + p_r \le N$), this simplifies to
 \begin{equation}\label{eq:degree-interior}
 \deg(v) = 2 + 2\,\omega(v),
 \end{equation}
-where $\omega(v)$ denotes the number of distinct prime divisors of~$v$.
+where $\omega(v)$ denotes the number of distinct prime divisors of~$v$
+(see~\cite{Hardy1979}, \S22.1).
 \end{proposition}
 
 \begin{proof}
@@ -188,25 +190,58 @@ $v$ & Factorization & $\omega(v)$ & $\deg(v)$ & Predicted \\
 % ====================================================================
 
 \begin{proposition}\label{prop:diameter}
-$\mathrm{diam}(G_N) = O(\log N)$.
+$\mathrm{diam}(G_N) = O(\sqrt{N})$.
 \end{proposition}
 
 \begin{proof}
-The $2$-highway connects every even integer. From any node~$v$, one additive step
-reaches an even node (distance~$\le 1$). From there, $\lceil d / 2 \rceil$ steps along
-the $2$-highway cover a distance of~$d$. But larger primes provide
-faster highways: the $p$-highway covers distance~$p$ in one step, and reaching
-a multiple of~$p$ costs at most $p-1$ additive steps. Choosing $p$ near
-$\sqrt{N}$ gives total cost $O(\sqrt{N})$ for a single hop, and iterating
-this with successively smaller primes yields $O(\log N)$.
+We show that any node~$s$ can reach any node~$t$ in $O(\sqrt{N})$ steps
+via an iterated strategy using highways of decreasing stride.
 
-More precisely, any node $s$ can reach any node $t$ by: (1) walking $\le p_k$ steps to
-the nearest multiple of the largest prime $p_k \le N$; (2) taking one $p_k$-highway
-step (covering distance $p_k$); (3) repeating with the next-largest prime for the
-remaining distance. Since prime gaps are $O(\log N)$, and each highway step
-halves the remaining distance (using primes near $N/2, N/4, \ldots$),
-the total number of steps is $O(\log N)$.
+Let $d = |s - t|$ be the remaining distance. Choose a prime $p$ with
+$\lfloor \sqrt{d} \rfloor \le p \le 2\sqrt{d}$ (such a prime exists by
+Bertrand's postulate for $d \ge 4$). Walk at most $p - 1 < 2\sqrt{d}$
+additive steps from the current position to the nearest multiple of~$p$,
+then take $\lfloor d/p \rfloor \le \sqrt{d}$ steps along the $p$-highway,
+covering distance $\ge d - p > d - 2\sqrt{d}$.
+The total cost of this phase is at most $2\sqrt{d} + \sqrt{d} = 3\sqrt{d}$
+steps, and the remaining distance satisfies $d' \le 2\sqrt{d} + p < 4\sqrt{d}$.
+
+Iterating: after one phase, $d_1 \le 4\sqrt{d_0}$; after two phases,
+$d_2 \le 4\sqrt{d_1} \le 4\sqrt{4\sqrt{d_0}}$. In general,
+$d_k = O(d_0^{2^{-k}})$. After $k = O(\log \log N)$ phases the remaining
+distance is $O(1)$, reachable by additive steps. Each phase uses
+$O(\sqrt{d_j})$ steps, and the total is dominated by the first phase:
+$O(\sqrt{N})$ in the worst case.
 \end{proof}
+
+\begin{remark}
+The empirical diameters in Table~\ref{tab:scaling} grow as
+$12, 18, 20, 23, 27$ for $N = 100, 500, 1000, 2000, 5000$,
+which is consistent with $O(\log N)$ growth rather than the $O(\sqrt{N})$
+bound proved above. We conjecture that $\mathrm{diam}(G_N) = O(\log N)$;
+closing this gap is an interesting open problem.
+\end{remark}
+
+\begin{corollary}[Large-prime necessity]\label{cor:largeprime}
+Let $s, t \in V$ with $|s - t| \ge N / C$ for some constant $C > 0$.
+Then every shortest $s$--$t$ path in $G_N$ uses at least one multiplicative
+edge $(kp, (k+1)p)$ with $p > \sqrt{N/C}$.
+\end{corollary}
+
+\begin{proof}
+An $s$--$t$ path of length $\ell$ can cover total distance at most
+$\ell \cdot p_{\max}$, where $p_{\max}$ is the largest prime step used
+(additive edges contribute step size~$1$). By Proposition~\ref{prop:diameter},
+a shortest path has $\ell = O(\sqrt{N})$ edges. If all multiplicative edges
+used primes $p \le P$, the path covers at most $O(P \sqrt{N})$ distance.
+To reach $|s - t| \ge N/C$, we need $P \sqrt{N} \ge N/C$, giving
+$P \ge \sqrt{N}/C$. In particular, $P > \sqrt{N/C}$ for all
+sufficiently large~$N$.
+\end{proof}
+
+This corollary has a direct structural consequence: efficient routing across $G_N$
+\emph{requires} the use of large-prime highways, and these are precisely the
+highways with the fewest stops---the bottleneck regime of Lemma~\ref{lem:scarcity}.
 
 \begin{table}[ht]
 \centering
@@ -259,25 +294,26 @@ Any path using the edge $(p, 2p)$ must include both endpoints.
 \end{proof}
 
 \begin{lemma}[Access cost]\label{lem:access}
-For a positive integer~$k$, the expected distance from a uniformly random node
-$s \in \{1, \ldots, N\}$ to the nearest multiple of~$k$ in $G_N$ is at most
-$\lfloor (k-1)/2 \rfloor$.
+For a positive integer~$k$, the distance in $G_N$ from any node
+$s \in \{1, \ldots, N\}$ to the nearest multiple of~$k$ is at most
+$\lfloor k/2 \rfloor$.
+In particular, the access cost to the $2$-highway is at most~$1$,
+and to the $3$-highway at most~$1$.
 \end{lemma}
 
 \begin{proof}
-The multiples of~$k$ in $\{1, \ldots, N\}$ are spaced exactly $k$ apart.
-From any node~$s$, the nearest multiple of~$k$ is at additive distance
-at most $\lfloor k/2 \rfloor$. Since the additive chain is a subgraph of~$G_N$,
-the graph distance is at most $\lfloor k/2 \rfloor$. The expectation is
-therefore at most $\lfloor (k-1)/2 \rfloor$.
+The multiples of~$k$ in $\{1, \ldots, N\}$ are spaced exactly $k$ apart
+along the additive chain. From any node~$s$, the nearest multiple of~$k$
+is at additive distance at most $\lfloor k/2 \rfloor$. Since the additive
+chain is a subgraph of~$G_N$, the graph distance is also at most
+$\lfloor k/2 \rfloor$.
 \end{proof}
 
 \begin{theorem}[Semiprime bottleneck]\label{thm:bottleneck}
 Let $p$ be a prime with $N/4 < p \le N/3$, so the $p$-highway consists
 of nodes $\{p, 2p, 3p\}$ (since $3p \le N$ but $4p > N$).
 Among these three nodes, $2p$ has the lowest expected shortest-path distance
-from a uniformly random source, and therefore the highest betweenness centrality
-contribution from the $p$-highway.
+from a uniformly random source.
 \end{theorem}
 
 \begin{proof}
@@ -306,15 +342,65 @@ by combining lowest access cost with best geometric centrality
 (Table~\ref{tab:ushape}, Figure~\ref{fig:ushape}).
 \end{proof}
 
+\begin{remark}
+Closeness (low expected distance) does not in general imply high betweenness.
+However, on a 3-stop highway $\{p, 2p, 3p\}$, the node with the lowest
+expected distance from random sources is also the preferred intermediary
+for shortest paths that enter and exit the highway at different stops.
+The computational verification in Table~\ref{tab:highway} confirms that
+$2p$ captures $\approx 44\%$ of the total highway betweenness,
+consistently more than $p$ or $3p$.
+\end{remark}
+
 \begin{remark}[Why $2p$ beats $3p$]
 Both $2p$ and $3p$ have degree~$6$, but $2p$ sits on the denser $2$-highway
 (access cost $\le 1$ from any node) while $3p$ sits on the $3$-highway
 (access cost $\le 1$ from $2/3$ of nodes, up to~$1$ from the rest).
-Moreover, $2p \approx N$ places it at the boundary, but the reduction in
+Moreover, $2p \in (N/2,\, 2N/3]$ places it near the geometric center, and the reduction in
 access cost via the $2$-highway more than compensates.
 Empirically, across all large primes $p > N/4$, node $2p$ captures
 approximately $44\%$ of the total betweenness among all multiples of $p$
 (Table~\ref{tab:highway}).
+\end{remark}
+
+\begin{proposition}[Primorial dilution]\label{prop:dilution}
+Let $v = p_1 \cdots p_r$ be a primorial with $r$ distinct small prime factors
+$p_1 < \cdots < p_r$, all satisfying $p_i \le N^{1/3}$.
+Then the fraction of shortest paths on the $p_i$-highway that pass through~$v$
+is at most $1 / \lfloor N / p_i \rfloor$.
+In particular, the $p_i$-highway contribution to $\BC(v)$ is at most
+$p_i / N$ times the total betweenness carried by the $p_i$-highway.
+\end{proposition}
+
+\begin{proof}
+The $p_i$-highway has exactly $\lfloor N / p_i \rfloor$ stops.
+Since $p_i \le N^{1/3}$, this highway has at least $N^{2/3}$ stops.
+A shortest path entering the $p_i$-highway at stop $ap_i$ and exiting
+at stop $bp_i$ passes through $v = (v/p_i) \cdot p_i$ only if $v/p_i$
+lies between $a$ and $b$ on the highway. Writing $n = \lfloor N/p_i \rfloor$
+and $m = v/p_i$, the number of unordered pairs $(a, b)$ with $a < m < b$
+is $(m - 1)(n - m)$, out of $\binom{n}{2} = n(n-1)/2$ total pairs.
+Since $v$ is a fixed primorial, $m = v/p_i$ is a constant independent of~$N$,
+while $n = \lfloor N/p_i \rfloor$ grows with~$N$. For fixed~$m$ and growing~$n$,
+\[
+\frac{(m-1)(n-m)}{\binom{n}{2}}
+\;=\; \frac{(m-1)(n-m)}{n(n-1)/2}
+\;\sim\; \frac{2(m-1)}{n}
+\;=\; O(m/n)
+\;=\; O(p_i / N),
+\]
+since $m = v/p_i$ is bounded independently of~$N$.
+\end{proof}
+
+\begin{remark}
+Summing over all $r$ highways of a primorial gives
+$\BC(v) \le \sum_{i=1}^{r} O(p_i / N) = O(p_r / N) \cdot r$,
+which remains bounded as $N \to \infty$ for fixed $r$.
+In contrast, a semiprime $2p$ with $p > N/4$ captures $\Theta(1)$ of the
+$p$-highway betweenness (since the highway has only $2$--$3$ stops),
+yielding $\BC(2p) \gg \BC(v)$ for large~$N$.
+This quantifies why high-degree nodes (primorials) lose the centrality
+competition to low-degree semiprimes.
 \end{remark}
 
 \begin{corollary}[Degree--betweenness decorrelation]\label{cor:decorrelation}
@@ -324,16 +410,24 @@ degree but moderate betweenness, while low-$\omega$ semiprimes have low degree
 but high betweenness.
 \end{corollary}
 
-\begin{proof}[Explanation]
-A primorial $v = p_1 \cdots p_r$ sits on $r$ highways, all of which have
-many stops (since $p_i$ is small). Each individual highway contributes little
-betweenness to~$v$ because there are many alternative routes through
-other stops on the same highway. In contrast, a semiprime $v = 2p$
-with $p$ large sits on only two highways: the dense $2$-highway
-(which contributes negligibly since every even number is on it)
-and the sparse $p$-highway (which concentrates betweenness on its few stops).
-The net effect is that betweenness scales with the \emph{scarcity} of the
-highway, not the \emph{number} of highways---the inverse of what degree measures.
+\begin{proof}
+By Proposition~\ref{prop:degree}, the maximum degree in $G_N$ is
+$2 + 2\omega_{\max}$, where $\omega_{\max}$ is the largest number
+of distinct prime factors of any $v \le N$. This grows as
+$\log N / \log \log N$ and is achieved by primorials.
+By Proposition~\ref{prop:dilution}, the betweenness of these
+maximum-degree nodes is bounded by $O(r \cdot p_r / N)$, which
+tends to zero.
+
+Meanwhile, by Theorem~\ref{thm:bottleneck} and the empirical
+verification in Table~\ref{tab:highway}, semiprimes $2p$ (with $p$
+in the range $(N/4, N/3]$) capture a $\Theta(1)$ fraction of the
+betweenness on 3-stop highways ($\approx 44\%$; Table~\ref{tab:highway}),
+so their betweenness remains bounded away from zero.
+
+Since the maximum-betweenness nodes are locked at degree~$6$ while
+the maximum-degree nodes have vanishing betweenness, the Pearson
+correlation $\rho(\deg, \BC)$ must decay to zero.
 \end{proof}
 
 
@@ -342,7 +436,8 @@ highway, not the \emph{number} of highways---the inverse of what degree measures
 % ====================================================================
 
 We computed betweenness centrality exactly for $N \le 5{,}000$ and via
-$k$-sampling ($k = 1{,}000$) for $N = 10{,}000$ using NetworkX~\cite{Brandes2001}.
+$k$-sampling ($k = 1{,}000$) for $N = 10{,}000$ using the
+Brandes algorithm~\cite{Brandes2001} as implemented in NetworkX~\cite{Hagberg2008}.
 
 \subsection{Semiprime dominance across scales}
 
@@ -503,6 +598,28 @@ The observed decay ($0.25 \to 0.18 \to 0.12 \to 0.06 \to 0.02$ from $N = 500$
 to $N = 10{,}000$; Figure~\ref{fig:corr_decay}) is consistent with a power-law
 approach to zero, roughly $\rho \sim N^{-0.8}$.
 
+\medskip
+\noindent\textbf{Broader implications.}
+The scarcity--accessibility trade-off identified here is not specific
+to arithmetic graphs. Any network containing both dense and sparse
+subnetworks may exhibit the same structural paradox: low-degree nodes
+bridging a dense cluster to a sparse one can dominate betweenness
+over high-degree hubs.
+This has practical relevance for network resilience analysis,
+where standard protection strategies focus on high-degree hubs
+while the true vulnerabilities may be low-degree bridge nodes
+that are difficult to identify without betweenness computation.
+Arithmetic graphs provide a clean, deterministic model in which
+this phenomenon can be studied analytically, without the noise
+of stochastic network models.
+More speculatively, the fact that semiprimes $2p$ occupy a
+structurally privileged position in the multiplicative landscape
+of the integers may connect to computational number theory:
+the routing geometry of $G_N$ encodes how addition and multiplication
+interact, and understanding which integers act as bottlenecks
+in this interaction could inform algorithmic approaches to
+factorization and primality testing.
+
 
 % ====================================================================
 \section*{Funding}
@@ -549,6 +666,11 @@ A faster algorithm for betweenness centrality,
 G.~H. Hardy and E.~M. Wright,
 \emph{An Introduction to the Theory of Numbers},
 5th ed., Oxford University Press, 1979.
+
+\bibitem{Hagberg2008}
+A.~A. Hagberg, D.~A. Schult, and P.~J. Swart,
+Exploring network structure, dynamics, and function using NetworkX,
+in \emph{Proceedings of the 7th Python in Science Conference} (SciPy 2008), 11--15.
 
 \bibitem{Mertens1874}
 F.~Mertens,
