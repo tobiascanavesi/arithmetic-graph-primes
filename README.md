@@ -29,7 +29,6 @@ Runtime: ~10 minutes (mostly betweenness at N=10,000).
 | File | Description |
 |------|-------------|
 | `paper.tex` | LaTeX source |
-| `cover_letter.tex` | Submission cover letter |
 | `reproduce.py` | Single script reproducing all results |
 | `fig_*.pdf` | Generated figures |
 

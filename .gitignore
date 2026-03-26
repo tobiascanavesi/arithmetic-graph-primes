@@ -8,3 +8,4 @@
 *.fls
 __pycache__/
 *.pyc
+cover_letter.*
