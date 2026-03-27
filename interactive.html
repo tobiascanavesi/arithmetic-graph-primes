@@ -350,6 +350,98 @@
   }
   footer a { color: var(--accent); text-decoration: none; }
 
+  /* Simulation */
+  #sim-canvas {
+    width: 100%;
+    height: 480px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .sim-controls {
+    display: flex;
+    gap: 10px;
+    margin: 12px 0;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .sim-controls label { font-size: 0.85rem; color: var(--muted); }
+  .sim-controls select, .sim-controls button {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sim-controls button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .sim-controls button.active-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .sim-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .sim-stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+  .sim-stat-val {
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+  .sim-stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+  .sim-leaderboard {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .sim-leaderboard h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    font-size: 0.88rem;
+  }
+  .lb-rank { color: var(--gold); font-weight: 700; width: 24px; text-align: right; }
+  .lb-node { font-weight: 600; width: 40px; }
+  .lb-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .lb-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .lb-count { color: var(--muted); width: 50px; text-align: right; font-size: 0.8rem; }
+  .lb-type { font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; }
+
   /* Responsive */
   @media (max-width: 640px) {
     header h1 { font-size: 1.5rem; }
@@ -373,6 +465,7 @@
   <div class="container">
     <a href="#big-idea" class="active">The Big Idea</a>
     <a href="#graph">Explore the Graph</a>
+    <a href="#simulation">Simulation</a>
     <a href="#results">Results</a>
     <a href="#evidence">Evidence</a>
     <a href="#discussion">Why It Matters</a>
@@ -441,6 +534,60 @@
 
     <canvas id="graph-canvas"></canvas>
     <div class="node-info" id="nodeInfo">Hover over a node to see its properties.</div>
+  </div>
+</section>
+
+<!-- ============ SIMULATION ============ -->
+<section id="simulation">
+  <div class="container">
+    <div class="section-label">Live Simulation</div>
+    <h2>Watch the Bottleneck Effect Happen</h2>
+    <p>This simulation sends packets between random pairs of nodes along shortest paths. Watch as nodes heat up based on how much traffic passes through them. <strong style="color:var(--accent2)">The semiprimes will glow bright while high-degree nodes stay cool.</strong></p>
+
+    <div class="sim-controls">
+      <label>N =</label>
+      <select id="simN">
+        <option value="40">40</option>
+        <option value="60" selected>60</option>
+        <option value="80">80</option>
+        <option value="100">100</option>
+      </select>
+      <label style="margin-left:8px;">Speed:</label>
+      <select id="simSpeed">
+        <option value="slow">Slow (see each path)</option>
+        <option value="medium" selected>Medium</option>
+        <option value="fast">Fast (quick heatmap)</option>
+      </select>
+      <button id="btnSimStart">Start Simulation</button>
+      <button id="btnSimReset">Reset</button>
+      <button id="btnSimBurst">Burst ×50</button>
+    </div>
+
+    <canvas id="sim-canvas"></canvas>
+
+    <div class="sim-stats">
+      <div class="sim-stat">
+        <div class="sim-stat-val" id="simPaths" style="color:var(--accent)">0</div>
+        <div class="sim-stat-lbl">Paths routed</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sim-stat-val" id="simTopNode" style="color:var(--accent2)">—</div>
+        <div class="sim-stat-lbl">Current top bottleneck</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sim-stat-val" id="simTopType" style="color:var(--gold)">—</div>
+        <div class="sim-stat-lbl">Its type</div>
+      </div>
+      <div class="sim-stat">
+        <div class="sim-stat-val" id="simTopDeg" style="color:var(--accent4)">—</div>
+        <div class="sim-stat-lbl">Its degree</div>
+      </div>
+    </div>
+
+    <div class="sim-leaderboard" id="simLeaderboard">
+      <h4>Top 8 Bottleneck Nodes (by traffic through them)</h4>
+      <div id="lbRows"><p class="muted" style="font-size:0.85rem;">Start the simulation to see the leaderboard build up.</p></div>
+    </div>
   </div>
 </section>
 
@@ -1010,9 +1157,391 @@ canvas.addEventListener('mouseleave', () => {
 document.getElementById('btnRedraw').addEventListener('click', init);
 document.getElementById('graphN').addEventListener('change', init);
 document.getElementById('chkHighlight').addEventListener('change', draw);
-window.addEventListener('resize', () => { resizeCanvas(); const N = parseInt(document.getElementById('graphN').value); buildGraph(N); draw(); });
 
 init();
+
+// ===== TRAFFIC SIMULATION =====
+const simCanvas = document.getElementById('sim-canvas');
+const sctx = simCanvas.getContext('2d');
+let simNodes = [], simEdges = [], simAdj = [];
+let trafficCount = [], pathsRouted = 0;
+let simRunning = false, simTimer = null;
+let activePackets = [];  // animated packets in flight
+
+function simResize() {
+  const rect = simCanvas.getBoundingClientRect();
+  simCanvas.width = rect.width * dpr;
+  simCanvas.height = rect.height * dpr;
+}
+
+function simBuildGraph(N) {
+  simNodes = []; simEdges = []; simAdj = [];
+  trafficCount = new Array(N).fill(0);
+  pathsRouted = 0;
+  activePackets = [];
+
+  const cx = simCanvas.width / (2 * dpr);
+  const cy = simCanvas.height / (2 * dpr);
+  const R = Math.min(cx, cy) * 0.82;
+
+  for (let v = 1; v <= N; v++) {
+    const angle = (2 * Math.PI * (v - 1)) / N - Math.PI / 2;
+    simNodes.push({
+      v, x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle),
+      pf: primeFactors(v), type: nodeType(v, N),
+      omega: primeFactors(v).length, deg: 0
+    });
+  }
+
+  // Build adjacency list
+  simAdj = Array.from({length: N}, () => []);
+  // Additive
+  for (let i = 0; i < N - 1; i++) {
+    simAdj[i].push(i + 1);
+    simAdj[i + 1].push(i);
+    simEdges.push({a: i, b: i+1, type: 'additive'});
+  }
+  // Multiplicative
+  const pr = [];
+  for (let p = 2; p <= N; p++) if (isPrime(p)) pr.push(p);
+  for (const p of pr) {
+    for (let k = 1; (k+1)*p <= N; k++) {
+      const a = k*p - 1, b = (k+1)*p - 1;
+      simAdj[a].push(b);
+      simAdj[b].push(a);
+      simEdges.push({a, b, type: 'multiplicative', prime: p});
+    }
+  }
+  for (let i = 0; i < N; i++) simNodes[i].deg = simAdj[i].length;
+}
+
+// BFS shortest path
+function bfsPath(src, dst, N) {
+  const prev = new Array(N).fill(-1);
+  const visited = new Uint8Array(N);
+  const queue = [src];
+  visited[src] = 1;
+  while (queue.length > 0) {
+    const u = queue.shift();
+    if (u === dst) break;
+    for (const w of simAdj[u]) {
+      if (!visited[w]) {
+        visited[w] = 1;
+        prev[w] = u;
+        queue.push(w);
+      }
+    }
+  }
+  if (!visited[dst]) return [];
+  const path = [];
+  for (let v = dst; v !== -1; v = prev[v]) path.push(v);
+  path.reverse();
+  return path;
+}
+
+function routeOnePath() {
+  const N = simNodes.length;
+  const s = Math.floor(Math.random() * N);
+  let t = Math.floor(Math.random() * N);
+  while (t === s) t = Math.floor(Math.random() * N);
+  const path = bfsPath(s, t, N);
+  if (path.length === 0) return;
+
+  // Count intermediate nodes
+  for (let i = 1; i < path.length - 1; i++) {
+    trafficCount[path[i]]++;
+  }
+  pathsRouted++;
+  return path;
+}
+
+// Heatmap color
+function heatColor(count, maxCount) {
+  if (maxCount === 0 || count === 0) return 'rgba(100,116,139,0.6)';
+  const t = Math.min(count / maxCount, 1);
+  // cold (blue) -> warm (yellow) -> hot (red/pink)
+  if (t < 0.33) {
+    const u = t / 0.33;
+    return `rgba(${Math.round(56 + u*140)}, ${Math.round(189 - u*60)}, ${Math.round(248 - u*120)}, ${0.7 + t*0.3})`;
+  } else if (t < 0.66) {
+    const u = (t - 0.33) / 0.33;
+    return `rgba(${Math.round(196 + u*55)}, ${Math.round(129 - u*20)}, ${Math.round(128 - u*90)}, ${0.85 + t*0.15})`;
+  } else {
+    const u = (t - 0.66) / 0.34;
+    return `rgba(${Math.round(251 - u*7)}, ${Math.round(109 - u*30)}, ${Math.round(38 + u*140)}, 1)`;
+  }
+}
+
+function simDraw() {
+  sctx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+  sctx.save();
+  sctx.scale(dpr, dpr);
+
+  const N = simNodes.length;
+  const maxT = Math.max(1, ...trafficCount);
+
+  // Draw edges
+  for (const e of simEdges) {
+    const a = simNodes[e.a], b = simNodes[e.b];
+    sctx.beginPath();
+    sctx.moveTo(a.x, a.y);
+    sctx.lineTo(b.x, b.y);
+    sctx.strokeStyle = e.type === 'additive' ? 'rgba(71,85,105,0.25)' : 'rgba(56,189,248,0.1)';
+    sctx.lineWidth = 0.6;
+    sctx.stroke();
+  }
+
+  // Draw active packet paths
+  for (const pkt of activePackets) {
+    if (pkt.path.length < 2) continue;
+    // Draw path trace
+    sctx.beginPath();
+    sctx.moveTo(simNodes[pkt.path[0]].x, simNodes[pkt.path[0]].y);
+    for (let i = 1; i <= pkt.headIdx; i++) {
+      sctx.lineTo(simNodes[pkt.path[i]].x, simNodes[pkt.path[i]].y);
+    }
+    // Interpolate to current position
+    if (pkt.headIdx < pkt.path.length - 1) {
+      const from = simNodes[pkt.path[pkt.headIdx]];
+      const to = simNodes[pkt.path[pkt.headIdx + 1]];
+      const lx = from.x + (to.x - from.x) * pkt.frac;
+      const ly = from.y + (to.y - from.y) * pkt.frac;
+      sctx.lineTo(lx, ly);
+    }
+    sctx.strokeStyle = `rgba(52,211,153,${0.5 * pkt.alpha})`;
+    sctx.lineWidth = 2;
+    sctx.stroke();
+
+    // Draw packet dot
+    let px, py;
+    if (pkt.headIdx >= pkt.path.length - 1) {
+      px = simNodes[pkt.path[pkt.path.length-1]].x;
+      py = simNodes[pkt.path[pkt.path.length-1]].y;
+    } else {
+      const from = simNodes[pkt.path[pkt.headIdx]];
+      const to = simNodes[pkt.path[pkt.headIdx + 1]];
+      px = from.x + (to.x - from.x) * pkt.frac;
+      py = from.y + (to.y - from.y) * pkt.frac;
+    }
+    sctx.beginPath();
+    sctx.arc(px, py, 4, 0, Math.PI * 2);
+    sctx.fillStyle = `rgba(52,211,153,${pkt.alpha})`;
+    sctx.fill();
+  }
+
+  // Draw nodes (heatmap)
+  const baseR = Math.max(3, Math.min(8, 200 / N));
+  for (let i = 0; i < N; i++) {
+    const n = simNodes[i];
+    const tc = trafficCount[i];
+    const heat = maxT > 0 ? tc / maxT : 0;
+    const r = baseR + heat * baseR * 2.5;
+
+    // Glow for hot nodes
+    if (heat > 0.3) {
+      sctx.beginPath();
+      sctx.arc(n.x, n.y, r + 6 * heat, 0, Math.PI * 2);
+      sctx.fillStyle = `rgba(251,191,36,${heat * 0.2})`;
+      sctx.fill();
+    }
+
+    sctx.beginPath();
+    sctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+    sctx.fillStyle = heatColor(tc, maxT);
+    sctx.fill();
+
+    // Label hot nodes
+    if (heat > 0.4 && N <= 80) {
+      sctx.fillStyle = '#fff';
+      sctx.font = `bold ${Math.round(10 + heat*3)}px system-ui`;
+      sctx.textAlign = 'center';
+      sctx.fillText(n.v, n.x, n.y - r - 5);
+    }
+  }
+
+  // Legend
+  sctx.font = '11px system-ui';
+  sctx.fillStyle = '#64748b';
+  sctx.textAlign = 'left';
+  sctx.fillText('Cool = low traffic', 14, 18);
+  sctx.fillText('Hot = high traffic (bottleneck)', 14, 34);
+  const grd = sctx.createLinearGradient(14, 44, 130, 44);
+  grd.addColorStop(0, 'rgba(56,189,248,0.7)');
+  grd.addColorStop(0.4, 'rgba(251,191,36,0.9)');
+  grd.addColorStop(1, 'rgba(248,80,178,1)');
+  sctx.fillStyle = grd;
+  sctx.fillRect(14, 40, 116, 8);
+
+  sctx.restore();
+}
+
+function updateSimStats() {
+  document.getElementById('simPaths').textContent = pathsRouted;
+  const N = simNodes.length;
+  if (pathsRouted === 0) return;
+
+  // Find top node
+  let topIdx = 0;
+  for (let i = 1; i < N; i++) {
+    if (trafficCount[i] > trafficCount[topIdx]) topIdx = i;
+  }
+  const tn = simNodes[topIdx];
+  const typeNames = {
+    one:'Unit', prime:'Prime', semi2p:'Semiprime 2p',
+    semi3p:'Semiprime 3p', semiprime:'Semiprime',
+    primorial:'Primorial', composite:'Composite'
+  };
+  document.getElementById('simTopNode').textContent = tn.v;
+  document.getElementById('simTopType').textContent = typeNames[tn.type] || tn.type;
+  document.getElementById('simTopDeg').textContent = tn.deg;
+
+  // Leaderboard top 8
+  const indices = Array.from({length: N}, (_, i) => i);
+  indices.sort((a, b) => trafficCount[b] - trafficCount[a]);
+  const top8 = indices.slice(0, 8);
+  const maxC = trafficCount[top8[0]] || 1;
+
+  const typeColors = {
+    semi2p: 'var(--red)', semi3p: 'var(--gold)',
+    prime: 'var(--accent)', primorial: 'var(--accent3)',
+    composite: 'var(--muted)', one: 'var(--muted)', semiprime: 'var(--accent4)'
+  };
+  const typeBg = {
+    semi2p: 'rgba(248,113,113,0.2)', semi3p: 'rgba(251,191,36,0.2)',
+    prime: 'rgba(56,189,248,0.2)', primorial: 'rgba(167,139,250,0.2)',
+    composite: 'rgba(148,163,184,0.15)', one: 'rgba(148,163,184,0.15)',
+    semiprime: 'rgba(52,211,153,0.2)'
+  };
+
+  let html = '';
+  top8.forEach((idx, rank) => {
+    const n = simNodes[idx];
+    const pct = (trafficCount[idx] / maxC * 100).toFixed(0);
+    const tName = typeNames[n.type] || n.type;
+    const color = typeColors[n.type] || 'var(--muted)';
+    const bg = typeBg[n.type] || 'rgba(148,163,184,0.15)';
+    html += `<div class="lb-row">
+      <span class="lb-rank">${rank+1}</span>
+      <span class="lb-node" style="color:${color}">${n.v}</span>
+      <div class="lb-bar-bg"><div class="lb-bar" style="width:${pct}%;background:${color}"></div></div>
+      <span class="lb-count">${trafficCount[idx]} hits</span>
+      <span class="lb-type" style="background:${bg};color:${color}">${tName} (deg ${n.deg})</span>
+    </div>`;
+  });
+  document.getElementById('lbRows').innerHTML = html;
+}
+
+function simStep() {
+  const speed = document.getElementById('simSpeed').value;
+  const stepsPerFrame = speed === 'fast' ? 10 : speed === 'medium' ? 3 : 1;
+
+  for (let s = 0; s < stepsPerFrame; s++) {
+    const path = routeOnePath();
+    if (path && speed !== 'fast') {
+      activePackets.push({ path, headIdx: 0, frac: 0, alpha: 1 });
+    }
+  }
+
+  // Animate packets
+  const animSpeed = speed === 'slow' ? 0.06 : speed === 'medium' ? 0.12 : 0.3;
+  for (let i = activePackets.length - 1; i >= 0; i--) {
+    const pkt = activePackets[i];
+    if (pkt.headIdx >= pkt.path.length - 1) {
+      pkt.alpha -= 0.05;
+      if (pkt.alpha <= 0) { activePackets.splice(i, 1); continue; }
+    } else {
+      pkt.frac += animSpeed;
+      if (pkt.frac >= 1) {
+        pkt.frac = 0;
+        pkt.headIdx++;
+      }
+    }
+  }
+  // Cap active packets
+  if (activePackets.length > 15) activePackets.splice(0, activePackets.length - 15);
+
+  simDraw();
+  updateSimStats();
+
+  if (simRunning) {
+    const delay = speed === 'fast' ? 30 : speed === 'medium' ? 50 : 80;
+    simTimer = setTimeout(simStep, delay);
+  }
+}
+
+function simInit() {
+  simResize();
+  const N = parseInt(document.getElementById('simN').value);
+  simBuildGraph(N);
+  simDraw();
+  updateSimStats();
+  document.getElementById('lbRows').innerHTML = '<p class="muted" style="font-size:0.85rem;">Start the simulation to see the leaderboard build up.</p>';
+}
+
+document.getElementById('btnSimStart').addEventListener('click', function() {
+  if (simRunning) {
+    simRunning = false;
+    clearTimeout(simTimer);
+    this.textContent = 'Resume';
+    this.classList.remove('active-btn');
+  } else {
+    if (simNodes.length === 0) simInit();
+    simRunning = true;
+    this.textContent = 'Pause';
+    this.classList.add('active-btn');
+    simStep();
+  }
+});
+
+document.getElementById('btnSimReset').addEventListener('click', () => {
+  simRunning = false;
+  clearTimeout(simTimer);
+  document.getElementById('btnSimStart').textContent = 'Start Simulation';
+  document.getElementById('btnSimStart').classList.remove('active-btn');
+  simInit();
+});
+
+document.getElementById('btnSimBurst').addEventListener('click', () => {
+  if (simNodes.length === 0) simInit();
+  for (let i = 0; i < 50; i++) routeOnePath();
+  simDraw();
+  updateSimStats();
+});
+
+document.getElementById('simN').addEventListener('change', () => {
+  simRunning = false;
+  clearTimeout(simTimer);
+  document.getElementById('btnSimStart').textContent = 'Start Simulation';
+  document.getElementById('btnSimStart').classList.remove('active-btn');
+  simInit();
+});
+
+window.addEventListener('resize', () => {
+  // existing graph resize
+  resizeCanvas();
+  const N2 = parseInt(document.getElementById('graphN').value);
+  buildGraph(N2);
+  draw();
+  // sim resize
+  if (simNodes.length > 0) {
+    simResize();
+    const sN = parseInt(document.getElementById('simN').value);
+    // Recompute positions but keep traffic data
+    const cx = simCanvas.width / (2*dpr), cy = simCanvas.height / (2*dpr);
+    const R = Math.min(cx,cy) * 0.82;
+    for (let v = 0; v < simNodes.length; v++) {
+      const angle = (2*Math.PI*v)/simNodes.length - Math.PI/2;
+      simNodes[v].x = cx + R*Math.cos(angle);
+      simNodes[v].y = cy + R*Math.sin(angle);
+    }
+    simDraw();
+  }
+});
+
+// Remove the duplicate resize handler from the original init
+// (already handled above)
+
+simInit();
 </script>
 
 </body>
