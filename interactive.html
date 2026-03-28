@@ -714,17 +714,17 @@
             Every shortest path covering distance ≥ N/C must use a multiplicative edge with p > √(N/C).
           </div>
           <div class="key-insight">
-            This is the fundamental link: efficient routing <em>requires</em> large-prime highways, and large-prime highways are inherently scarce. Scarcity creates bottlenecks.
+            This is the fundamental link: efficient routing <em>requires</em> large-prime highways, and large-prime highways are inherently sparse. Sparsity creates bottlenecks.
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Lemma: Highway Scarcity -->
-    <div class="result-card" id="rc-scarcity">
-      <div class="result-header" onclick="toggleCard('rc-scarcity')">
+    <!-- Lemma: Highway Sparsity -->
+    <div class="result-card" id="rc-sparsity">
+      <div class="result-header" onclick="toggleCard('rc-sparsity')">
         <span class="result-type type-lem">Lemma</span>
-        <span class="result-title">Highway Scarcity — Big Primes, Few Stops</span>
+        <span class="result-title">Highway Sparsity — Big Primes, Few Stops</span>
         <span class="result-toggle">▼</span>
       </div>
       <div class="result-body">
@@ -783,7 +783,7 @@
             Among {p, 2p, 3p} on a 3-stop highway, node 2p has the lowest expected shortest-path distance from a uniformly random source, combining lowest access cost with best geometric centrality.
           </div>
           <div class="key-insight">
-            This is the paper's central result. The "scarcity–accessibility trade-off": large primes create scarce highways (few stops = bottleneck), and 2p is the most accessible stop on those scarce highways. Scarcity × accessibility = maximum importance.
+            This is the paper's central result. The "sparsity–accessibility trade-off": large primes create sparse highways (few stops = bottleneck), and 2p is the most accessible stop on those sparse highways. Sparsity × accessibility = maximum importance.
           </div>
         </div>
       </div>
@@ -908,7 +908,7 @@
 
     <div class="implication-card">
       <h4>A Universal Principle</h4>
-      <p>The "scarcity–accessibility trade-off" is not specific to numbers. Any network containing both dense and sparse subnetworks may show the same paradox: low-degree nodes bridging a dense cluster to a sparse one can dominate betweenness over high-degree hubs. Arithmetic graphs provide a clean, deterministic testbed to study this phenomenon analytically — without the noise of random network models.</p>
+      <p>The "sparsity–accessibility trade-off" is not specific to numbers. Any network containing both dense and sparse subnetworks may show the same paradox: low-degree nodes bridging a dense cluster to a sparse one can dominate betweenness over high-degree hubs. Arithmetic graphs provide a clean, deterministic testbed to study this phenomenon analytically — without the noise of random network models.</p>
     </div>
   </div>
 </section>
