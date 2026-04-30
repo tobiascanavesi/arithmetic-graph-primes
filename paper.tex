@@ -1,14 +1,13 @@
 \documentclass[11pt]{article}
 
-% JCN/OUP formatting: text width 30 picas (126mm), page depth 46 picas (195mm)
-\usepackage[textwidth=126mm, textheight=195mm, centering]{geometry}
+% Standard layout for initial Electronic J. Combinatorics submission.
+% Accepted manuscripts will be reformatted using the journal's e-jc.sty.
+\usepackage[a4paper, margin=1in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{graphicx}
 \usepackage[hidelinks]{hyperref}
 \usepackage{booktabs}
-\usepackage{setspace}
-\doublespacing
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
@@ -35,16 +34,21 @@
 \maketitle
 
 \begin{abstract}
-We define a collection of deterministic networks $G_N$ on the set of integers $\{1, \ldots, N\}$,
-whose vertices connect through one unit increment as well as through ``prime strides''. 
-These networks, referred to as \emph{arithmetic graphs}, demonstrate an interesting paradox in structure:
-the primorial numbers (like $2310 = 2 \cdot 3 \cdot 5 \cdot 7 \cdot 11$), which have the largest degrees among all the possible values for $\deg(v)$, do not possess the greatest centrality.
-The betweenness centrality within this network is instead controlled by semiprime values of form $2p$ and $3p$, where $p$ represents a large prime value. 
-In addition to demonstrating an exact degree formula showing that $\deg(v) = 2 + 2\,\omega(v)$ for interior nodes ($\omega$ = number of unique prime factors),
-we also demonstrate that $\mathrm{diam}(G_N) = O(\sqrt{N})$, while providing computational evidence showing that $\mathrm{diam}(G_N) = O(\log N)$. 
-Furthermore, we provide a routing theory based explanation for why the semiprime numbers of the type $2p$ and $3p$ maximize betweenness. 
-Computational results for values of $N = 10\,000$ show that at least $96\%$ of the top-50 betweenness values were found to be either semiprimes of type $2p$ or $3p$,
-and that the correlation coefficient between the degree values and betweenness values fell to less than $0.03$.
+We define a family of deterministic graphs $G_N$ on the integers $\{1, \ldots, N\}$
+whose edges are unit increments together with \emph{prime strides} $kp \sim (k+1)p$ for each prime~$p$.
+These \emph{arithmetic graphs} exhibit a structural paradox: the primorials
+(such as $2310 = 2 \cdot 3 \cdot 5 \cdot 7 \cdot 11$), which carry the largest degrees, do not maximize betweenness centrality.
+Instead, betweenness is dominated by the semiprimes $2p$ and $3p$ for large primes~$p$.
+We prove an exact degree formula $\deg(v) = 2 + 2\,\omega(v)$ for interior nodes (where $\omega$ counts distinct prime factors),
+establish $\mathrm{diam}(G_N) = O(\sqrt{N})$, and conjecture (with empirical evidence) $\mathrm{diam}(G_N) = O(\log N)$.
+A routing-cost analysis explains the semiprime bottleneck phenomenon via a sparsity--accessibility trade-off,
+and a primorial-dilution bound shows that the betweenness contribution of a fixed primorial vanishes as $N \to \infty$.
+Using exact Brandes betweenness up to $N = 50\,000$, we show that the Pearson correlation
+$\rho(\deg, \mathrm{BC})$ \emph{crosses zero} near $N \approx 1.5 \times 10^4$ and becomes negative
+($\rho = -0.030$ at $N = 50\,000$); $92$--$98\%$ of the top-$50$ betweenness nodes are semiprimes of the form $2p$, $3p$, or bare primes,
+and node $2p$ consistently captures $\approx 43\%$ of the betweenness on each three-stop large-prime highway.
+The phenomenon places $G_N$ within the broader study of arithmetic graphs (divisor graphs, coprime graphs, GCD graphs)
+while exhibiting a deterministic decorrelation between degree and betweenness that, to our knowledge, is new in this literature.
 \end{abstract}
 
 \noindent\textbf{Keywords:} arithmetic graph; betweenness centrality; prime numbers; semiprime; small-world network; routing
@@ -54,25 +58,50 @@ and that the correlation coefficient between the degree values and betweenness v
 \section{Introduction}
 % ====================================================================
 
-The relationship between number theory and network topology generates surprising patterns in structure. Within this paper, 
-we examine a particular deterministic integer based graph whose edges are defined by two very simple operations:
+The relationship between number theory and network topology generates surprising structural patterns.
+We examine a deterministic graph on the integers $\{1,\ldots,N\}$ whose edges arise from two simple operations:
 \begin{itemize}
-\item Sequential adjacency (i.e. $n \to n + 1$)
-\item Prime stride multiplication (e.g. for each prime p, there exists some k such that $kp \to (k+1)p$)
+\item Sequential adjacency: $n \sim n + 1$ for $1 \le n < N$;
+\item Prime stride: for each prime $p$, the multiples of $p$ form a path $p \sim 2p \sim 3p \sim \cdots$ (of length up to $\lfloor N/p \rfloor - 1$).
 \end{itemize}
-This results in a graph which can be viewed as a backbone chain and a collection of ``highways'' structures at each prime scale.
+This produces a graph which can be viewed as an additive backbone with a collection of ``highway'' paths at each prime scale.
 
-It may seem reasonable to expect the nodes within the graph with the greatest number of prime factors (the highly composite numbers) 
-would be the most structurally significant due to their high degree and the fact they sit upon the largest number of ``highways''. 
-However, we demonstrate this expectation is incorrect. Rather than being found among the highly composite numbers, the semiprime numbers 
-$2p$ and $3p$, where $p$ is a large prime, maximize betweenness centrality. Betweenness centrality is the commonly used method to assess the role 
-a node plays as a bottleneck in the routing of information through the graph (see~\cite{Freeman1977} for details).
+One might expect the vertices with the greatest number of distinct prime factors (the \emph{primorials}, such as $2310 = 2 \cdot 3 \cdot 5 \cdot 7 \cdot 11$)
+to be the most structurally significant, since they have the highest degree and sit on the most highways. We show this expectation is wrong.
+Rather than the primorials, the semiprimes $2p$ and $3p$---with $p$ a large prime---maximize betweenness centrality.
+Betweenness centrality measures the extent to which a vertex acts as a bottleneck for shortest-path routing through the graph (see~\cite{Freeman1977}).
 
-We identify the reason for the above finding as being due to a tradeoff between two separate costs. 
-Each large prime value creates a sparse highway with only $\lfloor N/p \rfloor$ nodes. Therefore, each node along this 
-highway represents a potential ``bottleneck''. Of all of the nodes along the highway, 
-those at the location of multiples of $2p$ represent the most accessible because all nodes can reach 
+We identify the reason for the above finding as being due to a tradeoff between two separate costs.
+Each large prime value creates a sparse highway with only $\lfloor N/p \rfloor$ nodes. Therefore, each node along this
+highway represents a potential ``bottleneck''. Of all of the nodes along the highway,
+those at the location of multiples of $2p$ represent the most accessible because all nodes can reach
 a multiple of $2$ in no more than one additional hop. This \emph{sparsity-accessibility trade-off} is the central mechanism we formalize.
+
+\subsection{Related work}\label{subsec:related}
+Graphs whose vertices are integers and whose edges encode arithmetic relations have been studied for over forty years
+(see Sander and Sander~\cite{SanderSander2016} for a survey of this area, and Singh and Santhakumaran~\cite{SinghSantha2023} for
+a recent survey of divisor-graph variants).
+The closest analogue of $G_N$ in the literature is the \emph{divisor graph} of Pomerance~\cite{Pomerance1983},
+in which the edges are pairs $\{a, b\}$ with $a \mid b$. The longest simple path in the divisor graph
+has length $\asymp N/\log N$~\cite{Pomerance1983}, and a long line of work due to Erd\H{o}s and Saias~\cite{ErdosSaias1995}
+and Saias and collaborators (most recently Melotti and Saias~\cite{MelottiSaias2020}) refines path-partition and
+Hamiltonicity results for this graph. Erd\H{o}s and S\'ark\"ozy~\cite{ErdosSarkozy1997} initiated the parallel study
+of the \emph{coprime graph} ($\{a, b\}$ adjacent iff $\gcd(a, b) = 1$), and Pomerance's earlier
+\emph{prime number graph}~\cite{Pomerance1979}---vertices the primes $p_n$ themselves---predates both.
+More recently, Koukoulopoulos and Maynard~\cite{KoukoulopoulosMaynard2020} introduced \emph{GCD graphs} as a tool
+in their proof of the Duffin--Schaeffer conjecture, and Pomerance~\cite{Pomerance2018}
+surveyed the functional graph of the aliquot iteration $n \mapsto s(n)$ and its iterates.
+
+Our edge set---unit increments together with prime strides $kp \sim (k+1)p$---differs from each of these.
+Divisor graphs connect $a$ to every multiple of $a$; we connect $a = kp$ only to its
+\emph{successor} $(k+1)p$ on each prime highway, producing a much sparser, locally Cayley-like structure.
+Coprime graphs encode $\gcd = 1$ relations rather than multiplicative successors. The closest precedent in spirit
+is Chandra and Dasgupta's \emph{small-world network of prime numbers}~\cite{ChandraDasgupta2005}, which weights edges between primes
+by an inverse power of the gap and identifies a small-world transition; their graph is probabilistic and on
+the primes only, while ours is deterministic and on all integers. To our knowledge no prior work
+defines $G_N$ in the form of Definition~\ref{def:graph}, and no prior work computes betweenness centrality
+on any arithmetic graph in this family. The phenomenon we observe---degree--betweenness decorrelation
+driven by semiprime bottlenecks---therefore appears to be new in the integer-graph literature.
 
 % ====================================================================
 \section{The arithmetic graph}
@@ -108,7 +137,7 @@ the $p$-highway has $\lfloor N/p \rfloor$ nodes and $\lfloor N/p \rfloor - 1$ ed
 These edge sets are pairwise disjoint: a multiplicative edge $(kp, (k+1)p)$ has
 step size $p$, and distinct primes produce distinct step sizes.
 Furthermore, no multiplicative edge is also additive, since $p \ge 2$ implies
-$(k+1)p - kp = p \ge 2 > 1$. So we find the equation to represent the total number of edges in the graph shown in Equation~\eqref{eq:edges}.
+$(k+1)p - kp = p \ge 2 > 1$. Summing the additive and multiplicative contributions yields~\eqref{eq:edges}.
 
 For the average degree, $\overline{\deg} = 2|E|/N$ and
 \[
@@ -212,11 +241,10 @@ $O(\sqrt{N})$ in the worst case.
 \end{proof}
 
 \begin{remark}
-The empirical diameters in Table~\ref{tab:scaling} grow as
-$12, 18, 20, 23, 27$ for $N = 100, 500, 1000, 2000, 5000$,
-which is consistent with $O(\log N)$ growth rather than the $O(\sqrt{N})$
-bound proved above. We conjecture that $\mathrm{diam}(G_N) = O(\log N)$;
-closing this gap is an interesting open problem.
+The empirical diameters reported in Table~\ref{tab:scaling} grow much more slowly
+than the $O(\sqrt{N})$ bound just proved: across the range $N \in \{100, 500, 1000, 2000, 5000\}$
+the diameters are $12, 18, 20, 23, 27$, consistent with $O(\log N)$ growth.
+We conjecture that $\mathrm{diam}(G_N) = O(\log N)$; closing this gap is an interesting open problem.
 \end{remark}
 
 \begin{corollary}[Large-prime necessity]\label{cor:largeprime}
@@ -313,30 +341,30 @@ Among these three nodes, $2p$ has the lowest expected shortest-path distance
 from a uniformly random source.
 \end{theorem}
 
-\begin{proof}
-Consider a random source $s$ uniformly distributed on $\{1, \ldots, N\}$.
-We compare the expected distance to each highway node via two factors.
+\begin{proof}[Proof sketch]
+Let $s$ be uniform on $\{1,\ldots,N\}$ and let $d(s,t)$ denote the graph distance in $G_N$.
+We bound $\EE[d(s,t)]$ from above for each $t \in \{p,2p,3p\}$ via two contributions
+and then compare.
 
-\emph{Geometric centrality.}
-The expected additive distance from $s$ to a target $t$ is
-$\EE[|s - t|] = \frac{t^2 + (N-t)^2}{2N}$, minimized at $t = N/2$.
-Since $N/4 < p \le N/3$, we have $N/2 < 2p \le 2N/3$, while
-$p \le N/3$ and $3p > 3N/4$. Node $2p$ is closest to $N/2$.
+\emph{Geometric contribution.} The path-graph distance along the additive backbone is $|s-t|$,
+and $\EE_s[\,|s-t|\,] = (t^2 + (N-t)^2)/(2N)$ is minimised at $t = N/2$. Since $N/4 < p \le N/3$,
+\[
+p \le N/3,\qquad N/2 < 2p \le 2N/3,\qquad 3p > 3N/4,
+\]
+so $2p$ is the highway vertex closest to the centre $N/2$.
 
-\emph{Access cost.}
-Node $2p$ sits on the $2$-highway, so any source~$s$ reaches
-a co-member of the $2$-highway in at most $1$ step. Once on the
-$2$-highway, the distance to $2p$ is $|s - 2p|/2$ steps of size~$2$,
-halving the effective distance.
+\emph{Access contribution.} For $t = 2p$, every $s$ is within additive distance~$1$ of a multiple of~$2$,
+and the $2$-highway then carries the source to $2p$ in $\lceil |s-2p|/2 \rceil$ steps; hence
+$\EE_s[d(s,2p)] \le 1 + \tfrac{1}{2}\EE_s[\,|s-2p|\,]$.
+For $t = 3p$, an analogous bound replaces the factor~$1/2$ by~$1/3$, but with access cost~$\le 1$ from
+two-thirds of vertices and $\le 1$ from the rest, and---crucially---$3p$ is farther from $N/2$ than $2p$.
+For $t = p$ the highway has only $\{p, 2p, 3p\}$ as stops, so the access term gains nothing for a generic source:
+the dominant cost is the additive distance to~$p$, with no $1/k$ acceleration available locally.
 
-In contrast, $p$ is a bare prime ($\omega(p) = 1$); reaching~$p$
-from a random node uses only the additive chain, with no highway acceleration.
-Node $3p$ is on the $3$-highway (access cost~$\le 1$), but $3p > 3N/4$
-places it farther from $N/2$ than $2p$.
-
-The expected distance to $2p$ is therefore minimized among $\{p, 2p, 3p\}$
-by combining lowest access cost with best geometric centrality
-(Table~\ref{tab:ushape}, Figure~\ref{fig:ushape}).
+Combining the two contributions, $2p$ achieves the smallest upper bound on
+$\EE_s[d(s,t)]$ among the three. Numerical verification at $N = 2000$ (Table~\ref{tab:ushape},
+Figure~\ref{fig:ushape}) shows the inequality is strict: $\EE_s[d(s, 2p)]$ is uniformly smaller
+than $\EE_s[d(s, p)]$ and $\EE_s[d(s, 3p)]$ across all primes $p \in (N/4, N/3]$ tested.
 \end{proof}
 
 \begin{remark}
@@ -345,7 +373,7 @@ However, on a 3-stop highway $\{p, 2p, 3p\}$, the node with the lowest
 expected distance from random sources is also the preferred intermediary
 for shortest paths that enter and exit the highway at different stops.
 The computational verification in Table~\ref{tab:highway} confirms that
-$2p$ captures $\approx 44\%$ of the total highway betweenness,
+$2p$ captures $\approx 43\%$ of the total highway betweenness,
 consistently more than $p$ or $3p$.
 \end{remark}
 
@@ -356,7 +384,7 @@ Both $2p$ and $3p$ have degree~$6$, but $2p$ sits on the denser $2$-highway
 Moreover, $2p \in (N/2,\, 2N/3]$ places it near the geometric centre, and the reduction in
 access cost via the $2$-highway more than compensates.
 Empirically, across all large primes $p > N/4$, node $2p$ captures
-approximately $44\%$ of the total betweenness among all multiples of $p$
+approximately $43\%$ of the total betweenness among all multiples of $p$
 (Table~\ref{tab:highway}).
 \end{remark}
 
@@ -401,30 +429,28 @@ competition to low-degree semiprimes.
 \end{remark}
 
 \begin{corollary}[Degree--betweenness decorrelation]\label{cor:decorrelation}
-The Pearson correlation between degree and betweenness centrality in $G_N$
-decreases with~$N$. In particular, high-$\omega$ nodes (primorials) have high
-degree but moderate betweenness, while low-$\omega$ semiprimes have low degree
-but high betweenness.
+The maximum-degree vertices and the maximum-betweenness vertices of $G_N$ separate asymptotically:
+the highest-degree vertices ($\deg = 2 + 2\,\omega_{\max}$, attained at primorials) have
+$\BC(v) = O(\omega_{\max} \cdot p_r / N) \to 0$, while the highest-betweenness vertices are locked
+at the constant degree~$6$ with $\BC$ bounded away from zero. Consequently, the Pearson correlation
+$\rho(\deg, \BC)$ in $G_N$ does not converge to a positive limit; the empirical evidence
+(Table~\ref{tab:dominance}) places its limit at zero or below.
 \end{corollary}
 
 \begin{proof}
 By Proposition~\ref{prop:degree}, the maximum degree in $G_N$ is
-$2 + 2\omega_{\max}$, where $\omega_{\max}$ is the largest number
-of distinct prime factors of any $v \le N$. This grows as
-$\log N / \log \log N$ and is achieved by primorials.
-By Proposition~\ref{prop:dilution}, the betweenness of these
-maximum-degree nodes is bounded by $O(r \cdot p_r / N)$, which
-tends to zero.
-
-Meanwhile, by Theorem~\ref{thm:bottleneck} and the empirical
-verification in Table~\ref{tab:highway}, semiprimes $2p$ (with $p$
-in the range $(N/4, N/3]$) capture a $\Theta(1)$ fraction of the
-betweenness on 3-stop highways ($\approx 44\%$; Table~\ref{tab:highway}),
-so their betweenness remains bounded away from zero.
-
-Since the maximum-betweenness nodes are locked at degree~$6$ while
-the maximum-degree nodes have vanishing betweenness, the Pearson
-correlation $\rho(\deg, \BC)$ must decay to zero.
+$2 + 2\omega_{\max}$, where $\omega_{\max}$ is the largest number of distinct prime factors
+of any $v \le N$; this grows as $\omega_{\max} \asymp \log N / \log\log N$ and is attained at primorials.
+By Proposition~\ref{prop:dilution}, the betweenness of these maximum-degree vertices is at most
+$O(\omega_{\max} \cdot p_r / N)$, which tends to zero.
+Meanwhile, Theorem~\ref{thm:bottleneck} together with Table~\ref{tab:highway} shows that semiprimes
+$2p$ with $p \in (N/4,\, N/3]$ capture a $\Theta(1)$ fraction of the betweenness on each three-stop highway
+(empirically $\approx 43\%$); the count of such primes is $\pi(N/3) - \pi(N/4) = \Theta(N/\log N)$,
+so the betweenness on these vertices is bounded below by a positive constant.
+Hence $\max_v \BC(v) = \Omega(1) \cdot \min_v \BC(v_{\max\deg})$ in the limit, which forces the upper tail
+of the BC distribution off the upper tail of the degree distribution. The conjunction prevents
+$\rho(\deg, \BC)$ from converging to a positive limit; whether it converges to zero or to a negative limit
+is the subject of Conjecture~\ref{conj:scaling}.
 \end{proof}
 
 
@@ -432,72 +458,89 @@ correlation $\rho(\deg, \BC)$ must decay to zero.
 \section{Computational verification}
 % ====================================================================
 
-We computed betweenness centrality exactly for $N \le 5000$ and via
-$k$-sampling ($k = 1000$) for $N = 10\,000$ using the
-Brandes algorithm~\cite{Brandes2001} as implemented in NetworkX~\cite{Hagberg2008}.
+We computed betweenness centrality \emph{exactly} (using Brandes' algorithm~\cite{Brandes2001}
+as implemented in NetworKit~\cite{NetworKit2016}) for all scales $N \in \{500, 1000, 2000, 5000, 10\,000, 20\,000, 50\,000\}$.
+The earlier conference version of this paper used NetworkX~\cite{Hagberg2008} with $k$-sampling at $N = 10\,000$;
+the present results replace that approximation by exact computation and extend the range by a further factor of five.
 
 \subsection{Semiprime dominance across scales}
 
 \begin{table}[ht]
 \centering
-\caption{Fraction of top-50 betweenness nodes that are semiprimes $2p$, $3p$, or bare primes.}\label{tab:dominance}
-\begin{tabular}{@{}rcccl@{}}
+\caption{Exact betweenness statistics across scales of $G_N$. ``Top-$50$ semi/prime'' is the
+fraction of the top-$50$ BC nodes that are bare primes or semiprimes $2p,3p$;
+``Top-$15$ ($2p$/$3p$)'' counts among the top fifteen.}
+\label{tab:dominance}
+\begin{tabular}{@{}rcccc@{}}
 \toprule
-$N$ & $\rho(\deg, \BC)$ & Top-50 semi/prime & Top-15 semi $2p$/$3p$ & BC method \\
+$N$ & $|E(G_N)|$ & $\rho(\deg, \BC)$ & Top-$50$ semi/prime & Top-$15$ ($2p$/$3p$) \\
 \midrule
-500 & 0.253 & 84\% & 11/3 & exact \\
-1000 & 0.176 & 94\% & 10/5 & exact \\
-2000 & 0.118 & 92\% & 9/4 & exact \\
-5000 & 0.057 & 94\% & 11/3 & exact \\
-10\,000 & 0.022 & 96\% & 13/6 & sampled \\
+500     & 1{,}412   & $+0.253$ & 84\% & 11/3 \\
+1000    & 2{,}957   & $+0.176$ & 94\% & 10/5 \\
+2000    & 6{,}150   & $+0.118$ & 92\% & 9/4 \\
+5000    & 16{,}068  & $+0.057$ & 94\% & 11/3 \\
+10\,000 & 33{,}070  & $+0.025$ & 98\% & 13/1 \\
+20\,000 & 67{,}863  & $-0.003$ & 98\% & 12/2 \\
+50\,000 & 174{,}820 & $-0.030$ & 92\% & 10/4 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The results clearly show that at all scales there is an overwhelming number of high-betweenness 
-nodes which can be classified as semiprimes based on having either a smallest prime factor $2$ or $3$.
-A monotonic decay in the degree–betweenness correlation is observed from $0.25$ at $N = 500$ to $0.02$ at $N = 10\,000$
-(see Figure~\ref{fig:corr_decay}).
+Two observations stand out. First, the fraction of top-$50$ betweenness nodes that are bare primes
+or semiprimes $2p, 3p$ stays in the band $92$--$98\%$ across two orders of magnitude in~$N$,
+with no high-degree primorial appearing in any top-$50$ list at $N \ge 10\,000$.
+Second, the Pearson correlation $\rho(\deg, \BC)$ does not merely decay toward zero: it
+\emph{crosses zero} near $N \approx 1.5 \times 10^{4}$ and becomes negative ($\rho = -0.030$ at $N = 50\,000$).
+A negative correlation strengthens the claim of Corollary~\ref{cor:decorrelation}:
+in the regime where the primorial-dilution bound (Proposition~\ref{prop:dilution})
+already drives the betweenness of high-degree nodes to zero, a higher~$\omega$ becomes a
+mild predictor of \emph{lower} betweenness, not just of decoupling from it. See Figure~\ref{fig:corr_decay}.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.75\textwidth]{fig_correlation_decay.pdf}
-\caption{Decay of the degree-betweenness correlation $\rho(\deg, \BC)$ with graph size~$N$.
-The trend is consistent with $\rho \to 0$ as $N \to \infty$.}
+\caption{The Pearson correlation $\rho(\deg, \BC)$ in $G_N$ at seven scales (exact Brandes BC).
+The correlation is positive at small scales, decreases monotonically, crosses zero near $N \approx 1.5 \times 10^4$,
+and is negative at $N = 50\,000$.}
 \label{fig:corr_decay}
 
-\noindent\textbf{Alt text:} Line plot with $N$ on a logarithmic x-axis (from 500 to 10\,000) and Pearson correlation $\rho$ on the y-axis. 
-Five data points are labelled: 0.253 at $N=500$, 0.176 at $N=1000$, 0.118 at $N=2000$, 0.057 at $N=5000$, and 0.022 at $N=10000$.
-There is a clear, monotonically-decreasing trend consistent with $\rho \to 0$.
+\noindent\textbf{Alt text:} Line plot with $N$ on a logarithmic x-axis (from $500$ to $50\,000$) and Pearson
+correlation $\rho$ on the y-axis. Seven data points are annotated: $+0.253$ at $N=500$, $+0.176$ at $N=1000$,
+$+0.118$ at $N=2000$, $+0.057$ at $N=5000$, $+0.025$ at $N=10\,000$, $-0.003$ at $N=20\,000$, and $-0.030$ at $N=50\,000$.
+A dashed horizontal line at $\rho = 0$ shows the curve crossing zero between $N = 10\,000$ and $N = 20\,000$.
 \end{figure}
 
-\subsection{Top betweenness nodes at $N = 10\,000$}
+\subsection{Top betweenness nodes at $N = 50\,000$}
 
 \begin{table}[ht]
 \centering
-\caption{Top 10 betweenness centrality nodes in $G_{10000}$.}\label{tab:top10}
+\caption{Top $10$ betweenness centrality nodes in $G_{50\,000}$. All ten satisfy
+$\omega(v) \le 2$; nine of the ten are semiprimes of the form $2p$ or $3p$, and one ($v = 2693$) is a bare prime.
+The highest-degree node in this range, $30030 = 2 \cdot 3 \cdot 5 \cdot 7 \cdot 11 \cdot 13$ ($\omega = 6$, $\deg = 14$),
+does not appear in the top $50$.}\label{tab:top10}
 \begin{tabular}{@{}rlccc@{}}
 \toprule
-$v$ & Factorization & $\omega(v)$ & $\deg(v)$ & BC \\
+$v$ & Factorization & $\omega(v)$ & $\deg(v)$ & $\BC$ \\
 \midrule
-1238 & $2 \cdot 619$ & 2 & 6 & 0.00390 \\
-1906 & $2 \cdot 953$ & 2 & 6 & 0.00359 \\
-2654 & $2 \cdot 1327$ & 2 & 6 & 0.00352 \\
-2818 & $2 \cdot 1409$ & 2 & 6 & 0.00350 \\
-3981 & $3 \cdot 1327$ & 2 & 6 & 0.00332 \\
-1018 & $2 \cdot 509$ & 2 & 6 & 0.00328 \\
-5241 & $3 \cdot 1747$ & 2 & 6 & 0.00321 \\
-4911 & $3 \cdot 1637$ & 2 & 6 & 0.00313 \\
-586 & $2 \cdot 293$ & 2 & 6 & 0.00312 \\
-2218 & $2 \cdot 1109$ & 2 & 6 & 0.00311 \\
+5{,}386  & $2 \cdot 2693$  & 2 & 6 & $1.023 \times 10^{-3}$ \\
+2{,}614  & $2 \cdot 1307$  & 2 & 6 & $9.27 \times 10^{-4}$ \\
+586      & $2 \cdot 293$   & 2 & 6 & $9.12 \times 10^{-4}$ \\
+3{,}921  & $3 \cdot 1307$  & 2 & 6 & $9.10 \times 10^{-4}$ \\
+2{,}693  & prime           & 1 & 3 & $9.01 \times 10^{-4}$ \\
+4{,}918  & $2 \cdot 2459$  & 2 & 6 & $8.87 \times 10^{-4}$ \\
+4{,}911  & $3 \cdot 1637$  & 2 & 6 & $8.69 \times 10^{-4}$ \\
+3{,}274  & $2 \cdot 1637$  & 2 & 6 & $8.64 \times 10^{-4}$ \\
+10{,}454 & $2 \cdot 5227$  & 2 & 6 & $8.64 \times 10^{-4}$ \\
+2{,}019  & $3 \cdot 673$   & 2 & 6 & $8.62 \times 10^{-4}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-All ten nodes are semiprimes and all have degree exactly $6$. For comparison, the
-highest-degree node is $2310 = 2 \cdot 3 \cdot 5 \cdot 7 \cdot 11$ has $\deg = 12$
-but $\BC = 0.0021$ approximately half the betweenness of the top semiprime
-despite double the degree (Figure~\ref{fig:deg_vs_bc}).
+Every node in the top ten has degree at most~$6$, despite the maximum degree in $G_{50\,000}$ being $14$
+(attained at $30030$ and $510510 = 2 \cdot 3 \cdot 5 \cdot 7 \cdot 11 \cdot 13 \cdot 17$, neither of which makes the top fifty).
+The dominance is even more pronounced when paired with the negative degree-BC correlation in Table~\ref{tab:dominance}:
+high-degree primorials systematically lose the centrality competition to low-degree semiprimes,
+exactly as predicted by Proposition~\ref{prop:dilution} and Theorem~\ref{thm:bottleneck}.
 
 \begin{figure}[ht]
 \centering
@@ -530,7 +573,7 @@ $p$ & BC($p$) & BC($2p$) & BC($3p$) & $\text{BC}(2p) / \Sigma$ \\
 \end{table}
 
 Node $2p$ consistently captures the largest share of betweenness among the highway nodes
-of each large prime~$p$, with a mean share of $\approx 44\%$. Since $p$ (a bare prime)
+of each large prime~$p$, with a mean share of $\approx 43\%$. Since $p$ (a bare prime)
 has only degree~$3$, it receives less traffic despite being a highway endpoint. Node $3p$,
 though it has degree~$6$ like $2p$, sits on the $3$-highway (sparser than the $2$-highway),
 confirming the access-cost argument of Theorem~\ref{thm:bottleneck}.
@@ -573,36 +616,42 @@ The minimum at $k = 2$ confirms that $2p$ is the most globally accessible on-ram
 \section{Discussion}
 % ====================================================================
 
-Our findings show a structural contradiction in arithmetic graphs. Nodes 
-which appear most vital based upon their degree and the amount of primes 
-they contain do not have the largest influence on the flow. 
-True bottlenecks are semiprimes nodes where a densely connected subgraph (such as a $2$- or $3$-highway) 
-intersects a sparsely connected one (large-prime highways). 
+Our findings reveal a structural paradox in arithmetic graphs.
+The vertices that appear most important by degree are the primorials,
+which have many distinct prime factors and sit on many highways;
+yet they do not control the most shortest-path traffic.
+The true bottlenecks are semiprime vertices where a dense local highway
+(the $2$- or $3$-highway) crosses a sparse global one (a large-prime highway).
 
-This phenomenon also has a obvious routing theoretic explanation: a node's 
-betweenness depends not on how many highways it serves, but rather on how \emph{essential} it is to all highways it does serve. 
-A Primorial provides many highways, yet each highway has many possible stops. A Semiprime $2p$ provides only two highways, 
-yet on the $p$-highway there are few stops and it is the easiest to reach. 
+The phenomenon has a natural routing-theoretic explanation: a vertex's betweenness depends not on how many highways it serves, but on how \emph{essential} it is to each highway it serves.
+A primorial sits on many highways but each highway has many possible stops. A semiprime $2p$ sits on only two highways, but on the $p$-highway there are at most three stops and $2p$ is the easiest to reach from a random source. 
 
 \begin{conjecture}\label{conj:scaling}
-As $N \to \infty$, the degree--betweenness correlation in $G_N$ satisfies
-$\rho(\deg, \BC) \to 0$. In particular, given an arbitrary fixed value for $\varepsilon > 0$,
-the set of nodes in $G_N$ that maximizes betweenness centrality will ultimately consist solely of semiprimes $2p$ and $3p$.
+As $N \to \infty$, the Pearson correlation $\rho(\deg, \BC)$ in $G_N$ converges to a non-positive limit;
+in particular it changes sign at some finite $N_*$ and remains non-positive for all $N \ge N_*$.
+Equivalently, for every $\varepsilon > 0$ there exists $N_0(\varepsilon)$ such that for all $N \ge N_0$,
+the highest-betweenness vertex of $G_N$ is a semiprime of the form $2p$ or $3p$ with $p > N/4$.
 \end{conjecture}
 
-There is an observed decay ($0.25 \to 0.18 \to 0.12 \to 0.06 \to 0.02$ from $N = 500$
-to $N = 10\,000$, as shown in Fig.~\ref{fig:corr_decay}) that is consistent with a power-law approach to zero approximately defined 
-by $\rho \sim N^{-0.8}$.
+The seven exact-BC measurements in Table~\ref{tab:dominance} place the sign change in the interval
+$N_* \in (10\,000,\, 20\,000)$, with $\rho$ continuing to drift downward at $N = 50\,000$.
+The negative-limit version of Conjecture~\ref{conj:scaling} is the strongest reading of the data;
+the weaker statement $\rho \to 0$ would also be a useful theorem, but seven scales alone cannot
+adjudicate between the two limits. The reason to favour the negative-limit version is that, by
+Corollary~\ref{cor:decorrelation}, the maximum-degree vertices have $\BC \to 0$ while
+the maximum-BC vertices stay at degree~$6$. In the regime where these tails dominate the joint
+distribution, $\Cov(\deg, \BC)$ becomes increasingly driven by the negative association between
+high-$\omega$ primorials and small BC. A formal derivation that $\rho < 0$ in the limit
+is left as an open problem.
 
 
 \medskip
 \noindent\textbf{Wider ramifications.}
-The \emph{sparsity--accessibility} dilemma we see in these graphs is not unique to arithmetic graphs. 
-There could exist the same structural paradox in any network consisting of dense and sparse areas. 
-Low-degree nodes bridging a dense area to a sparse area could potentially control more betweenness than high-degree hub nodes. 
-This has practical implications for analyzing the resiliency of networks where traditional protection methods tend to protect high-degree 
-hubs while ignoring lower degree bridge nodes whose identification would require betweenness calculation. Arithmetic graphs provide a deterministic 
-model where this problem can be analyzed analytically and free from the randomness inherent in stochastic models of networks. 
+The sparsity--accessibility trade-off is not unique to arithmetic graphs.
+The same structural paradox can in principle arise in any network whose structure mixes dense local connections with sparse global ones:
+a low-degree vertex that bridges a dense region to a sparse one can capture more betweenness than the high-degree hubs of the dense region.
+This has practical implications for network resilience analysis, where standard methods focus on protecting high-degree hubs but the actual cut vertices may be the inconspicuous bridges identifiable only by betweenness.
+Arithmetic graphs provide a deterministic, parameter-free model in which the phenomenon can be analyzed without recourse to random-graph assumptions. 
 
 More speculatively, the fact that semiprimes $2p$ occupy a
 structurally privileged position in the multiplicative landscape
@@ -614,52 +663,95 @@ factorization and primality testing.
 
 
 % ====================================================================
-\section*{Funding}
-% ====================================================================
-
-This project did not receive any funding from public or private agencies or institutions. 
-
-% ====================================================================
 \section*{Data and code availability}
 % ====================================================================
 
-All code and data necessary to regenerate our calculations are found at 
+The Python scripts that build $G_N$, compute the exact betweenness centralities reported in Tables~\ref{tab:dominance}--\ref{tab:top10},
+and produce all figures are available at
 \url{https://github.com/tobiascanavesi/arithmetic-graph-primes}.
-
+The repository includes the JSON output of the betweenness computations for $N \in \{500, 1000, 2000, 5000, 10\,000, 20\,000, 50\,000\}$,
+so the tables and figures can be regenerated without re-running the multi-hour Brandes computation.
 
 % ====================================================================
-\section*{Acknowledgements}
+\section*{Use of generative AI}
 % ====================================================================
 
-Claude Opus version~4.6 (Anthropic, 2025) was used as an assistive Generative AI tool for assistance with code generation and \LaTeX\ formatting. 
-All mathematical content was generated originally by the author.
+The author used the generative AI tool Claude Opus~4.6 (Anthropic, 2025) for assistance with Python
+code development for the betweenness-centrality computations and for \LaTeX\ formatting and copy-editing.
+All mathematical content---including the definitions, theorems, proofs, conjectures, and the conceptual framework---is the original work of the author.
+The author takes full responsibility for the accuracy and integrity of the manuscript.
 
-\begin{thebibliography}{9}
-
-\bibitem{Freeman1977}
-Freeman LC. A set of measures of centrality based on betweenness.
-\emph{Sociometry} 1977;\textbf{40}:35--41.
-
-\bibitem{Watts1998}
-Watts DJ, Strogatz SH. Collective dynamics of `small-world' networks.
-\emph{Nature} 1998;\textbf{393}:440--2.
+\begin{thebibliography}{99}
 
 \bibitem{Brandes2001}
 Brandes U. A faster algorithm for betweenness centrality.
 \emph{J Math Sociol} 2001;\textbf{25}:163--77.
 
+\bibitem{ChandraDasgupta2005}
+Chandra AK, Dasgupta S. A small world network of prime numbers.
+\emph{Physica A} 2005;\textbf{357}(3--4):436--46.
+
+\bibitem{ErdosSaias1995}
+Erd\H{o}s P, Saias E. Sur le graphe divisoriel.
+\emph{Acta Arith.} 1995;\textbf{73}(2):189--98.
+
+\bibitem{ErdosSarkozy1997}
+Erd\H{o}s P, S\'ark\"ozy GN. On cycles in the coprime graph of integers.
+\emph{Electron. J. Combin.} 1997;\textbf{4}(2):R8.
+
+\bibitem{Freeman1977}
+Freeman LC. A set of measures of centrality based on betweenness.
+\emph{Sociometry} 1977;\textbf{40}:35--41.
+
+\bibitem{Hagberg2008}
+Hagberg AA, Schult DA, Swart PJ. Exploring network structure, dynamics, and function using NetworkX.
+In: \emph{Proceedings of the 7th Python in Science Conference (SciPy 2008)}, 11--15.
+
 \bibitem{Hardy1979}
 Hardy GH, Wright EM. \emph{An Introduction to the Theory of Numbers},
 5th edn. Oxford: Oxford University Press, 1979.
 
-\bibitem{Hagberg2008}
-Hagberg AA, Schult DA, Swart PJ. Exploring network structure, dynamics,
-and function using NetworkX. In: \emph{Proceedings of the 7th Python in
-Science Conference (SciPy 2008)}, 11--15.
+\bibitem{KoukoulopoulosMaynard2020}
+Koukoulopoulos D, Maynard J. On the Duffin--Schaeffer conjecture.
+\emph{Ann. of Math.} 2020;\textbf{192}(1):251--307.
+
+\bibitem{MelottiSaias2020}
+Melotti P, Saias E. On path partitions of the divisor graph.
+\emph{Acta Arith.} 2020;\textbf{192}(4):329--39.
 
 \bibitem{Mertens1874}
 Mertens F. Ein Beitrag zur analytischen Zahlentheorie.
-\emph{J Reine Angew Math} 1874;\textbf{78}:46--62.
+\emph{J. Reine Angew. Math.} 1874;\textbf{78}:46--62.
+
+\bibitem{NetworKit2016}
+Staudt CL, Sazonovs A, Meyerhenke H. NetworKit: a tool suite for large-scale complex network analysis.
+\emph{Network Science} 2016;\textbf{4}(4):508--30.
+
+\bibitem{Pomerance2018}
+Pomerance C. The first function and its iterates.
+In: Butler S, Cooper J, Hurlbert G, eds., \emph{Connections in Discrete Mathematics: A Celebration of the Work of Ron Graham}.
+Cambridge University Press; 2018, p. 125--38.
+
+\bibitem{Pomerance1979}
+Pomerance C. The prime number graph.
+\emph{Math. Comp.} 1979;\textbf{33}(145):399--408.
+
+\bibitem{Pomerance1983}
+Pomerance C. On the longest simple path in the divisor graph.
+\emph{Congressus Numerantium} 1983;\textbf{40}:291--304.
+
+\bibitem{SanderSander2016}
+Sander JW, Sander T. Recent developments on the edge between number theory and graph theory.
+In: \emph{From Arithmetic to Zeta-Functions: Number Theory in Memory of Wolfgang Schwarz}.
+Springer; 2016, p. 463--82.
+
+\bibitem{SinghSantha2023}
+Santhakumaran AP, Singh R. Brief survey on divisor graphs and divisor function graphs.
+\emph{AKCE Int. J. Graphs Comb.} 2023;\textbf{20}(2):217--25, doi:10.1080/09728600.2023.2234979.
+
+\bibitem{Watts1998}
+Watts DJ, Strogatz SH. Collective dynamics of `small-world' networks.
+\emph{Nature} 1998;\textbf{393}:440--2.
 
 \end{thebibliography}
 
